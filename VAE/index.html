@@ -377,8 +377,17 @@
       </p>
 
       <p>
-        A direct generative adversarial network (GAN) can learn to produce
-        samples without explicitly giving us a tractable probability density.
+        A Generative Adversarial Network (GAN) can learn to generate realistic
+        samples directly from random noise without explicitly modeling the
+        underlying probability distribution. That's why GANs can suffer from issues
+        such as <strong>mode collapse</strong>, where the generator produces a
+        limited variety of samples that are good enough to fool the discriminator,
+        instead of capturing the full diversity of the data distribution.
+        For further reference, see
+        <a href="https://medium.com/@miraytopal/what-is-mode-collapse-in-gans-d3428a7bd9b8"
+           target="_blank" rel="noopener noreferrer">
+          this explanation of mode collapse in GANs
+        </a>.
         In a latent-variable model, however, we introduce an unobserved
         variable \(z\) and explicitly model how \(z\) and \(x\) are related.
       </p>
@@ -558,59 +567,84 @@
     }
     \]
   </div>
+  <p>
+    However, in a latent-variable model, we need to estimate not only the model
+    parameters \(\theta\), but also the distribution of the latent variables
+    simultaneously.
+  </p>
 
-      <p>
-        For a latent-variable model, however,
-      </p>
+<section id="elbo">
+  <h2>4. Introducing the ELBO</h2>
 
-      <div class="formula">
-        \[
-          \log p_\theta(x)
-          =
-          \log\int p_\theta(x,z)\,dz.
-        \]
-      </div>
+  <p>
+    Introduce a distribution \(q(z\mid x)\) that approximates the posterior
+    distribution of the latent variable \(z\) given an observation \(x\).
+    In the VAE setting, this will later become \(q_\phi(z\mid x)\).
+  </p>
 
-      <p>
-        That integral is the obstacle. We need a way to obtain a useful,
-        tractable objective without explicitly solving the marginalization
-        over \(z\).
-      </p>
-    </section>
+  <p>
+    We start from the log-likelihood:
+  </p>
 
-    <section id="elbo">
-      <h2>4. Introducing the ELBO</h2>
+  <div class="formula">
+    \[
+    \begin{aligned}
+    \log p_\theta(x)
+    &=
+    \log \int p_\theta(x,z)\,dz \\[4pt]
+    &=
+    \log \int
+    q(z\mid x)
+    \frac{p_\theta(x,z)}{q(z\mid x)}
+    \,dz
+    \qquad \text{(multiplying and dividing by \(q(z\mid x)\))} \\[4pt]
+    &=
+    \log
+    \mathbb{E}_{q(z\mid x)}
+    \left[
+      \frac{p_\theta(x,z)}{q(z\mid x)}
+    \right].
+    \end{aligned}
+    \]
+  </div>
 
-      <p>
-        Introduce a distribution \(q(z\mid x)\) that approximates the posterior
-        distribution of the latent variable given an observation \(x\).
-        In the VAE setting this will later become \(q_\phi(z\mid x)\).
-      </p>
+  <p>
+    The last equality follows from the definition of expectation. For any
+    function \(f(z)\),
+  </p>
 
-      <p>
-        Start from the log likelihood:
-      </p>
+  <div class="formula">
+    \[
+      \mathbb{E}_{q(z\mid x)}[f(z)]
+      =
+      \int q(z\mid x)f(z)\,dz.
+    \]
+  </div>
 
-      <div class="formula">
-        \[
-        \begin{aligned}
-        \log p_\theta(x)
-        &=
-        \log \int p_\theta(x,z)\,dz \\
-        &=
-        \log \int
-        q(z\mid x)
+  <p>
+    By choosing
+    \[
+      f(z)=\frac{p_\theta(x,z)}{q(z\mid x)},
+    \]
+    we can write
+  </p>
+
+  <div class="formula">
+    \[
+      \mathbb{E}_{q(z\mid x)}
+      \left[
         \frac{p_\theta(x,z)}{q(z\mid x)}
-        \,dz \\
-        &=
-        \log
-        \mathbb{E}_{q(z\mid x)}
-        \left[
-        \frac{p_\theta(x,z)}{q(z\mid x)}
-        \right].
-        \end{aligned}
-        \]
-      </div>
+      \right]
+      =
+      \int
+      q(z\mid x)
+      \frac{p_\theta(x,z)}{q(z\mid x)}
+      \,dz
+      =
+      \int p_\theta(x,z)\,dz.
+    \]
+  </div>
+</section>
 
       <p>
         Since the logarithm is a concave function, Jensen's inequality gives
