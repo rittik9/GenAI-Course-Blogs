@@ -809,22 +809,53 @@
         \]
       </div>
 
-      <p>
-        Because KL divergence is always non-negative,
-      </p>
-
-      <div class="formula">
-        \[
-          D_{\mathrm{KL}}(q\|p)\ge 0,
-        \]
-      </div>
-
-      <p>
-        the ELBO can never exceed the log likelihood. The bound becomes tight
-        when the variational posterior \(q(z\mid x)\) matches the true posterior
-        \(p_\theta(z\mid x)\).
-      </p>
-    </section>
+    <p>
+      Since the KL divergence is always non-negative,
+      \[
+        D_{\mathrm{KL}}
+        \left(
+          q_\phi(z\mid x)
+          \,\|\, 
+          p_\theta(z\mid x)
+        \right)
+        \geq 0,
+      \]
+      the ELBO is guaranteed to be a lower bound on the log-likelihood. The bound
+      becomes <strong>tight</strong> when
+      \[
+        q_\phi(z\mid x)=p_\theta(z\mid x),
+      \]
+      because in that case
+      \[
+        D_{\mathrm{KL}}
+        \left(
+          q_\phi(z\mid x)
+          \,\|\, 
+          p_\theta(z\mid x)
+        \right)
+        =0.
+      \]
+    </p>
+    
+    <p>
+      Our original goal was to maximize the log-likelihood
+      \(\log p_\theta(x)\). However, directly computing and optimizing this
+      quantity is intractable in a VAE. Since
+      \[
+        \log p_\theta(x)
+        \geq
+        \mathcal{L}(\theta,\phi;x),
+      \]
+      we instead maximize the tractable ELBO. By maximizing the ELBO, we increase
+      a lower bound on the log-likelihood, thereby indirectly encouraging the
+      model to assign higher likelihood to the observed data.
+    </p>
+    
+    <div class="callout">
+      <strong>Key idea:</strong>
+      Instead of directly maximizing the intractable log-likelihood, a VAE
+      maximizes the tractable ELBO, which serves as its lower bound.
+    </div>
 
     <section id="gmm">
       <h2>5. A Latent-Variable Example: Gaussian Mixture Models</h2>
