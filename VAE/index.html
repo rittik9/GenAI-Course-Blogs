@@ -400,8 +400,9 @@
 
       <div class="formula">
         \[
-          p_\theta(x,z).
+          p_\theta(x,z),
         \]
+        where \(\theta\) denotes the model parameters.
       </div>
 
       <p>
@@ -452,7 +453,7 @@
       <div class="callout">
         <strong>For further reference:</strong>
         For a clear intuition on why marginalizing over the latent variable makes
-        \(p(x)\) intractable, see
+        \(p_\theta(x)\) intractable, see
         <a href="https://stats.stackexchange.com/questions/590742/latent-variable-model-why-is-the-marginal-probability-of-data-under-the-model-i"
            target="_blank" rel="noopener noreferrer">
           this explanation
@@ -497,26 +498,66 @@
         Expanding the KL divergence,
       </p>
 
-      <div class="formula">
-        \[
-        \begin{aligned}
-        D_{\mathrm{KL}}(p_X\|p_\theta)
-        &=
-        \int p_X(x)
-        \log\frac{p_X(x)}{p_\theta(x)}\,dx \\
-        &=
-        \int p_X(x)\log p_X(x)\,dx
-        -
-        \int p_X(x)\log p_\theta(x)\,dx.
-        \end{aligned}
-        \]
-      </div>
+<div class="formula">
+  \[
+  \begin{aligned}
+  D_{\mathrm{KL}}(p_X\|p_\theta)
+  &=
+  \int p_X(x)
+  \log\frac{p_X(x)}{p_\theta(x)}\,dx \\
+  &=
+  \int p_X(x)\log p_X(x)\,dx
+  -
+  \int p_X(x)\log p_\theta(x)\,dx.
+  \end{aligned}
+  \]
+</div>
 
-      <p>
-        The first term does not depend on \(\theta\). Therefore, minimizing
-        the KL divergence is equivalent to maximizing the expected log
-        likelihood:
-      </p>
+  <p>
+    The first term does not depend on the model parameters \(\theta\). Therefore,
+    when optimizing with respect to \(\theta\), we can treat it as a constant and
+    ignore it. Hence,
+  </p>
+  
+  <div class="formula">
+    \[
+    \begin{aligned}
+    \theta^*
+    &=
+    \arg\min_\theta
+    D_{\mathrm{KL}}\!\left(p_X \,\|\, p_\theta\right) \\
+    &\equiv
+    \arg\min_\theta
+    \left[
+    -\int p_X(x)\log p_\theta(x)\,dx
+    \right] \\
+    &=
+    \arg\min_\theta
+    \left[
+    -\mathbb{E}_{p_X(x)}
+    \left[\log p_\theta(x)\right]
+    \right].
+    \end{aligned}
+    \]
+  </div>
+  
+  <p>
+    Therefore, minimizing the KL divergence between the true data distribution
+    \(p_X\) and the model distribution \(p_\theta\) is equivalent to maximizing
+    the expected log-likelihood under the data distribution:
+  </p>
+  
+  <div class="formula">
+    \[
+    \boxed{
+    \theta^*
+    =
+    \arg\max_\theta
+    \mathbb{E}_{p_X(x)}
+    \left[\log p_\theta(x)\right]
+    }
+    \]
+  </div>
 
       <div class="key-result">
         <strong>Maximum likelihood objective</strong>
