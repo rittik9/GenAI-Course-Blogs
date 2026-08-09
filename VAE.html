@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variational Autoencoders — From Latent Variables to ELBO</title>
+
+  <!-- MathJax for mathematical notation -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+      --text: #20242a;
+      --muted: #606873;
+      --border: #e3e6ea;
+      --accent: #3f5f8f;
+      --accent-soft: #eef3f9;
+      --green-soft: #eef7f2;
+      --green: #2e6b4f;
+      --yellow-soft: #fff8e8;
+      --yellow: #8a6718;
+      --code: #f4f5f7;
+      --shadow: 0 8px 28px rgba(20, 30, 45, 0.07);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", sans-serif;
+      line-height: 1.72;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 850px);
+      gap: 38px;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 24px 80px;
+    }
+
+    aside {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+    }
+
+    .course-label {
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    aside h2 {
+      font-size: 1.15rem;
+      margin: 0 0 18px;
+      line-height: 1.3;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 10px;
+      margin: 2px 0;
+      border-radius: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+
+    nav a:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    main {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 54px 62px 70px;
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+      margin: 0 0 16px;
+      color: #1e2a3a;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.08rem;
+      max-width: 720px;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      line-height: 1.25;
+      margin: 54px 0 18px;
+      color: #25344a;
+      scroll-margin-top: 24px;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 34px 0 12px;
+      color: #33445c;
+      scroll-margin-top: 24px;
+    }
+
+    p { margin: 12px 0 18px; }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 16px 20px;
+      border-radius: 0 10px 10px 0;
+      margin: 22px 0;
+    }
+
+    .intuition {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .warning {
+      border-left-color: var(--yellow);
+      background: var(--yellow-soft);
+    }
+
+    .formula {
+      background: #fafbfc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 14px;
+      margin: 22px 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .key-result {
+      border: 1.5px solid #cfd8e5;
+      background: #fbfcfe;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 26px 0;
+    }
+
+    .key-result strong {
+      color: var(--accent);
+    }
+
+    ul, ol {
+      padding-left: 25px;
+    }
+
+    li { margin: 7px 0; }
+
+    code {
+      background: var(--code);
+      padding: 2px 5px;
+      border-radius: 5px;
+      font-size: 0.92em;
+    }
+
+    .diagram {
+      margin: 28px 0;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fcfcfd;
+      overflow-x: auto;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-width: 620px;
+    }
+
+    .box {
+      border: 1.5px solid #9eabbc;
+      border-radius: 10px;
+      padding: 14px 18px;
+      min-width: 135px;
+      text-align: center;
+      background: white;
+    }
+
+    .box small {
+      display: block;
+      color: var(--muted);
+      margin-top: 5px;
+      font-size: 0.8rem;
+    }
+
+    .arrow {
+      color: #69778a;
+      font-size: 1.5rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin: 22px 0;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 1.05rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 22px 0;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f5f7fa;
+      color: #354256;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .takeaways {
+      background: #f7f9fc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 30px;
+    }
+
+    footer {
+      margin-top: 55px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        display: block;
+        padding: 18px 12px 45px;
+      }
+
+      aside {
+        position: static;
+        margin-bottom: 16px;
+      }
+
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      nav a {
+        background: #fff;
+        border: 1px solid var(--border);
+      }
+
+      main {
+        padding: 34px 24px 48px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+      h2 { font-size: 1.4rem; }
+      main { border-radius: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+
+  <aside>
+    <div class="course-label">Generative AI</div>
+    <h2>Variational Autoencoders</h2>
+    <nav aria-label="Table of contents">
+      <a href="#motivation">1. Motivation</a>
+      <a href="#latent-model">2. Latent Variable Models</a>
+      <a href="#mle">3. Maximum Likelihood</a>
+      <a href="#elbo">4. The ELBO</a>
+      <a href="#gmm">5. GMM as a Latent Model</a>
+      <a href="#em">6. EM Algorithm</a>
+      <a href="#vae">7. From Latent Models to VAE</a>
+      <a href="#reparameterization">8. Reparameterization Trick</a>
+      <a href="#decoder">9. Gaussian Decoder</a>
+      <a href="#kl">10. KL Term</a>
+      <a href="#training">11. Training the VAE</a>
+      <a href="#summary">12. Summary</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header>
+      <div class="eyebrow">Generative AI Course · Topic 01</div>
+      <h1>Variational Autoencoders</h1>
+      <p class="subtitle">
+        From latent-variable models and maximum likelihood to the ELBO,
+        reparameterization, and the practical VAE objective.
+      </p>
+
+      <div class="callout intuition">
+        <strong>The big picture.</strong>
+        A VAE is easier to understand if we first ask a more general question:
+        how can we model a complicated data distribution using an unobserved
+        latent variable? The answer leads naturally to latent-variable models,
+        approximate inference, the ELBO, and finally the encoder–decoder
+        architecture of a VAE.
+      </div>
+    </header>
+
+    <section id="motivation">
+      <h2>1. Motivation: What Are We Trying to Learn?</h2>
+
+      <p>
+        Suppose we are given a dataset
+      </p>
+
+      <div class="formula">
+        \[
+          \mathcal{D} = \{x^{(i)}\}_{i=1}^{N},
+          \qquad
+          x^{(i)} \sim_{\mathrm{iid}} p_X(x).
+        \]
+      </div>
+
+      <p>
+        The generative goal is to learn a model that captures the unknown data
+        distribution \(p_X(x)\), so that we can eventually generate new samples
+        that look as though they came from the same distribution.
+      </p>
+
+      <p>
+        A direct generative adversarial network (GAN) can learn to produce
+        samples without explicitly giving us a tractable probability density.
+        In a latent-variable model, however, we introduce an unobserved
+        variable \(z\) and explicitly model how \(z\) and \(x\) are related.
+      </p>
+
+      <div class="callout">
+        <strong>Core question:</strong>
+        Can we construct a probability model in which a relatively simple
+        latent variable \(z\) explains the complicated observations \(x\)?
+      </div>
+    </section>
+
+    <section id="latent-model">
+      <h2>2. Latent Variable Models</h2>
+
+      <p>
+        Let \(z\) be a latent (unobserved) variable. The joint distribution can
+        be written as
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x,z).
+        \]
+      </div>
+
+      <p>
+        The corresponding marginal distribution of the observed data is obtained
+        by integrating out the latent variable:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x)
+          =
+          \int p_\theta(x,z)\,dz.
+        \]
+      </div>
+
+      <p>
+        This is the fundamental construction behind latent-variable models:
+        instead of directly describing a complicated distribution over \(x\),
+        we introduce \(z\), model the joint distribution, and marginalize \(z\)
+        when we want the likelihood of \(x\).
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(z\)
+            <small>latent variable</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(p_\theta(x\mid z)\)
+            <small>conditional model</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(x\)
+            <small>observed data</small>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        The difficulty is immediate: although the model may be simple in the
+        joint space \((x,z)\), computing \(p_\theta(x)\) requires an integral
+        over all possible latent values \(z\). For high-dimensional or
+        continuous latent spaces, this integral is generally intractable.
+      </p>
+    </section>
+
+    <section id="mle">
+      <h2>3. Maximum Likelihood Estimation</h2>
+
+      <p>
+        If we could evaluate \(p_\theta(x)\), a natural way to estimate the
+        model parameters would be maximum likelihood estimation (MLE).
+      </p>
+
+      <div class="formula">
+        \[
+          \theta^*
+          =
+          \arg\max_\theta
+          \mathbb{E}_{p_X(x)}
+          [\log p_\theta(x)].
+        \]
+      </div>
+
+      <p>
+        Equivalently, minimizing the KL divergence between the true data
+        distribution and the model gives
+      </p>
+
+      <div class="formula">
+        \[
+          \theta^*
+          =
+          \arg\min_\theta
+          D_{\mathrm{KL}}\!\left(p_X \,\|\, p_\theta\right).
+        \]
+      </div>
+
+      <p>
+        Expanding the KL divergence,
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+        D_{\mathrm{KL}}(p_X\|p_\theta)
+        &=
+        \int p_X(x)
+        \log\frac{p_X(x)}{p_\theta(x)}\,dx \\
+        &=
+        \int p_X(x)\log p_X(x)\,dx
+        -
+        \int p_X(x)\log p_\theta(x)\,dx.
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        The first term does not depend on \(\theta\). Therefore, minimizing
+        the KL divergence is equivalent to maximizing the expected log
+        likelihood:
+      </p>
+
+      <div class="key-result">
+        <strong>Maximum likelihood objective</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \theta^*
+            =
+            \arg\max_\theta
+            \mathbb{E}_{p_X(x)}
+            [\log p_\theta(x)]
+            }
+          \]
+        </div>
+      </div>
+
+      <p>
+        For a latent-variable model, however,
+      </p>
+
+      <div class="formula">
+        \[
+          \log p_\theta(x)
+          =
+          \log\int p_\theta(x,z)\,dz.
+        \]
+      </div>
+
+      <p>
+        That integral is the obstacle. We need a way to obtain a useful,
+        tractable objective without explicitly solving the marginalization
+        over \(z\).
+      </p>
+    </section>
+
+    <section id="elbo">
+      <h2>4. Introducing the ELBO</h2>
+
+      <p>
+        Introduce a distribution \(q(z\mid x)\) that approximates the posterior
+        distribution of the latent variable given an observation \(x\).
+        In the VAE setting this will later become \(q_\phi(z\mid x)\).
+      </p>
+
+      <p>
+        Start from the log likelihood:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+        \log p_\theta(x)
+        &=
+        \log \int p_\theta(x,z)\,dz \\
+        &=
+        \log \int
+        q(z\mid x)
+        \frac{p_\theta(x,z)}{q(z\mid x)}
+        \,dz \\
+        &=
+        \log
+        \mathbb{E}_{q(z\mid x)}
+        \left[
+        \frac{p_\theta(x,z)}{q(z\mid x)}
+        \right].
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        Since the logarithm is a concave function, Jensen's inequality gives
+      </p>
+
+      <div class="formula">
+        \[
+          \log\mathbb{E}[f(z)]
+          \ge
+          \mathbb{E}[\log f(z)].
+        \]
+      </div>
+
+      <p>
+        Applying Jensen's inequality gives a lower bound on the log likelihood:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+        \log p_\theta(x)
+        &\ge
+        \mathbb{E}_{q(z\mid x)}
+        \left[
+        \log
+        \frac{p_\theta(x,z)}{q(z\mid x)}
+        \right] \\
+        &=
+        \mathbb{E}_{q(z\mid x)}
+        [\log p_\theta(x,z)-\log q(z\mid x)].
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        This lower bound is called the
+        <strong>Evidence Lower Bound (ELBO)</strong>.
+      </p>
+
+      <div class="key-result">
+        <strong>ELBO</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \mathcal{L}(\theta,q)
+            =
+            \mathbb{E}_{q(z\mid x)}
+            \left[
+            \log
+            \frac{p_\theta(x,z)}
+                 {q(z\mid x)}
+            \right]
+            }
+          \]
+        </div>
+      </div>
+
+      <h3>4.1 The ELBO decomposition</h3>
+
+      <p>
+        Factor the joint distribution as
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x,z)
+          =
+          p_\theta(x\mid z)\,p_\theta(z).
+        \]
+      </div>
+
+      <p>
+        Substituting this into the ELBO gives
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+        \mathcal{L}(\theta,q)
+        &=
+        \mathbb{E}_{q(z\mid x)}
+        [\log p_\theta(x\mid z)] \\
+        &\quad+
+        \mathbb{E}_{q(z\mid x)}
+        \left[
+        \log
+        \frac{p_\theta(z)}
+             {q(z\mid x)}
+        \right].
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        The second term is the negative KL divergence:
+      </p>
+
+      <div class="formula">
+        \[
+          \mathbb{E}_{q(z\mid x)}
+          \left[
+          \log
+          \frac{p_\theta(z)}
+               {q(z\mid x)}
+          \right]
+          =
+          -
+          D_{\mathrm{KL}}
+          \left(
+          q(z\mid x)\,\|\,p_\theta(z)
+          \right).
+        \]
+      </div>
+
+      <div class="key-result">
+        <strong>ELBO in its most useful form</strong>
+        <div class="formula">
+          \[
+          \boxed{
+          \mathcal{L}(\theta,q)
+          =
+          \mathbb{E}_{q(z\mid x)}
+          [\log p_\theta(x\mid z)]
+          -
+          D_{\mathrm{KL}}
+          \left(
+          q(z\mid x)\,\|\,p_\theta(z)
+          \right)
+          }
+          \]
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Reconstruction / likelihood term</h3>
+          <p>
+            \[
+              \mathbb{E}_{q(z\mid x)}
+              [\log p_\theta(x\mid z)]
+            \]
+          </p>
+          <p class="small">
+            Encourages the decoder to assign high likelihood to the observed
+            data given latent samples.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Regularization / KL term</h3>
+          <p>
+            \[
+              D_{\mathrm{KL}}
+              (q(z\mid x)\|p_\theta(z))
+            \]
+          </p>
+          <p class="small">
+            Encourages the learned posterior to stay close to the chosen
+            latent prior.
+          </p>
+        </div>
+      </div>
+
+      <h3>4.2 Why is it called a lower bound?</h3>
+
+      <p>
+        The gap between the log likelihood and the ELBO is itself a KL
+        divergence. In particular,
+      </p>
+
+      <div class="formula">
+        \[
+          \boxed{
+          \log p_\theta(x)
+          =
+          \mathcal{L}(\theta,q)
+          +
+          D_{\mathrm{KL}}
+          \left(
+          q(z\mid x)\,\|\,p_\theta(z\mid x)
+          \right)
+          }
+        \]
+      </div>
+
+      <p>
+        Because KL divergence is always non-negative,
+      </p>
+
+      <div class="formula">
+        \[
+          D_{\mathrm{KL}}(q\|p)\ge 0,
+        \]
+      </div>
+
+      <p>
+        the ELBO can never exceed the log likelihood. The bound becomes tight
+        when the variational posterior \(q(z\mid x)\) matches the true posterior
+        \(p_\theta(z\mid x)\).
+      </p>
+    </section>
+
+    <section id="gmm">
+      <h2>5. A Latent-Variable Example: Gaussian Mixture Models</h2>
+
+      <p>
+        Before moving to VAEs, it is useful to see a classical latent-variable
+        model: the Gaussian Mixture Model (GMM).
+      </p>
+
+      <p>
+        Let the latent variable be discrete:
+      </p>
+
+      <div class="formula">
+        \[
+          z\in\{1,2,\ldots,M\}.
+        \]
+      </div>
+
+      <p>
+        Marginalizing over \(z\) becomes a sum:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x)
+          =
+          \sum_{z=1}^{M}
+          p_\theta(x,z)
+          =
+          \sum_{z=1}^{M}
+          p_\theta(z)\,
+          p_\theta(x\mid z).
+        \]
+      </div>
+
+      <p>
+        For a GMM, each latent state corresponds to a Gaussian component:
+      </p>
+
+      <div class="formula">
+        \[
+          \boxed{
+          p_\theta(x)
+          =
+          \sum_{j=1}^{M}
+          \alpha_j\,
+          \mathcal{N}
+          \left(
+          x;\mu_j,\Sigma_j
+          \right)
+          }
+        \]
+      </div>
+
+      <p>
+        Here, the mixture weights satisfy
+      </p>
+
+      <div class="formula">
+        \[
+          0\le \alpha_j\le 1,
+          \qquad
+          \sum_{j=1}^{M}\alpha_j=1.
+        \]
+      </div>
+
+      <p>
+        If \(x\in\mathbb{R}^d\), then
+        \(\mu_j\in\mathbb{R}^d\) and
+        \(\Sigma_j\in\mathbb{R}^{d\times d}\).
+      </p>
+
+      <h3>Parameters of a GMM</h3>
+
+      <div class="formula">
+        \[
+          \theta =
+          \{
+          \alpha_1,\ldots,\alpha_M,\,
+          \mu_1,\ldots,\mu_M,\,
+          \Sigma_1,\ldots,\Sigma_M
+          \}.
+        \]
+      </div>
+
+      <p>
+        The latent variable \(z\) tells us which Gaussian component generated
+        an observation, but \(z\) is not directly observed in the dataset.
+      </p>
+    </section>
+
+    <section id="em">
+      <h2>6. Expectation Maximization (EM)</h2>
+
+      <p>
+        For latent-variable models such as GMMs, one classical way of optimizing
+        the likelihood is the Expectation Maximization (EM) algorithm.
+      </p>
+
+      <p>
+        The idea is to alternate between estimating the latent-variable
+        distribution and updating the model parameters.
+      </p>
+
+      <h3>6.1 The two alternating steps</h3>
+
+      <ol>
+        <li>
+          <strong>E-step:</strong> with the current parameters fixed, estimate
+          the posterior distribution over the latent variable.
+        </li>
+        <li>
+          <strong>M-step:</strong> with the latent posterior fixed, update the
+          model parameters.
+        </li>
+      </ol>
+
+      <p>
+        Denote the estimates at iteration \(t\) by
+        \(\theta_t\) and \(q_t\). The alternating optimization can be written
+        conceptually as
+      </p>
+
+      <div class="formula">
+        \[
+          q_{t+1}
+          =
+          \arg\max_q
+          \mathcal{L}(\theta_t,q),
+        \]
+        \[
+          \theta_{t+1}
+          =
+          \arg\max_\theta
+          \mathcal{L}(\theta,q_{t+1}).
+        \]
+      </div>
+
+      <p>
+        For the GMM, the E-step computes the posterior responsibility of
+        component \(j\):
+      </p>
+
+      <div class="formula">
+        \[
+          q_{t+1}(z=j\mid x)
+          =
+          p_{\theta_t}(z=j\mid x)
+          =
+          \frac{
+          p_{\theta_t}(x\mid z=j)\,
+          p_{\theta_t}(z=j)
+          }{
+          p_{\theta_t}(x)
+          }.
+        \]
+      </div>
+
+      <p>
+        The M-step then updates the parameters using these responsibilities.
+      </p>
+
+      <div class="callout intuition">
+        <strong>Why EM matters for VAEs:</strong>
+        EM illustrates a recurring latent-variable pattern: inference over
+        \(z\) and learning the model parameters are coupled. When the exact
+        posterior is easy to compute, we can use it. When it is not, we need
+        an approximation. That is the problem the VAE addresses with a
+        learned variational posterior.
+      </div>
+
+      <p>
+        The notes also highlight an important property of EM: under the usual
+        assumptions, the likelihood does not decrease from one EM iteration
+        to the next.
+      </p>
+    </section>
+
+    <section id="vae">
+      <h2>7. From Latent-Variable Models to the VAE</h2>
+
+      <p>
+        Now consider the case where \(z\) is continuous and the mapping from
+        \(z\) to \(x\) is nonlinear. Computing the exact posterior
+        \(p_\theta(z\mid x)\) is generally difficult.
+      </p>
+
+      <p>
+        A VAE introduces a parameterized approximation:
+      </p>
+
+      <div class="formula">
+        \[
+          q_\phi(z\mid x).
+        \]
+      </div>
+
+      <p>
+        The parameters \(\phi\) are learned jointly with the generative-model
+        parameters \(\theta\).
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x\)
+            <small>observation</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(q_\phi(z\mid x)\)
+            <small>encoder</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(z\)
+            <small>latent sample</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(p_\theta(x\mid z)\)
+            <small>decoder</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\hat{x}\)
+            <small>reconstruction</small>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        The encoder does not directly output a single deterministic latent
+        vector. Instead, it outputs the parameters of a probability
+        distribution over \(z\).
+      </p>
+
+      <p>
+        A common choice is a Gaussian posterior:
+      </p>
+
+      <div class="formula">
+        \[
+          q_\phi(z\mid x)
+          =
+          \mathcal{N}
+          \left(
+          z;
+          \mu_\phi(x),
+          \operatorname{diag}
+          \left(\sigma_\phi^2(x)\right)
+          \right).
+        \]
+      </div>
+
+      <p>
+        Thus, the encoder produces two quantities:
+      </p>
+
+      <ul>
+        <li>\(\mu_\phi(x)\): the mean of the latent distribution.</li>
+        <li>\(\sigma_\phi(x)\): the standard deviation of the latent distribution.</li>
+      </ul>
+
+      <p>
+        The decoder represents the conditional likelihood
+      \(p_\theta(x\mid z)\). Together, these give the VAE's probabilistic
+      encoder–decoder structure.
+      </p>
+
+      <h3>7.1 The VAE objective</h3>
+
+      <p>
+        The ELBO becomes
+      </p>
+
+      <div class="formula">
+        \[
+          \boxed{
+          \mathcal{L}(\theta,\phi)
+          =
+          \mathbb{E}_{q_\phi(z\mid x)}
+          [\log p_\theta(x\mid z)]
+          -
+          D_{\mathrm{KL}}
+          \left(
+          q_\phi(z\mid x)\,\|\,p_\theta(z)
+          \right)
+          }
+        \]
+      </div>
+
+      <p>
+        We optimize this objective with respect to both sets of parameters:
+      </p>
+
+      <div class="formula">
+        \[
+          (\theta^*,\phi^*)
+          =
+          \arg\max_{\theta,\phi}
+          \mathcal{L}(\theta,\phi).
+        \]
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Encoder</h3>
+          <p>
+            \(x\rightarrow(\mu_\phi(x),\sigma_\phi(x))\)
+          </p>
+          <p class="small">
+            Learns an approximate posterior over the latent variable.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Decoder</h3>
+          <p>
+            \(z\rightarrow p_\theta(x\mid z)\)
+          </p>
+          <p class="small">
+            Learns how latent variables generate observations.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="reparameterization">
+      <h2>8. The Reparameterization Trick</h2>
+
+      <p>
+        At this point, there is a practical optimization problem. The VAE
+        objective contains an expectation over
+        \(z\sim q_\phi(z\mid x)\), but \(q_\phi\) itself depends on the
+        learnable parameters \(\phi\).
+      </p>
+
+      <p>
+        We want to sample \(z\) while still allowing gradients to propagate
+        through \(\mu_\phi(x)\) and \(\sigma_\phi(x)\).
+      </p>
+
+      <h3>8.1 Reparameterizing the Gaussian sample</h3>
+
+      <p>
+        Instead of sampling \(z\) directly from
+        \(q_\phi(z\mid x)\), sample an auxiliary noise variable
+      </p>
+
+      <div class="formula">
+        \[
+          \epsilon\sim\mathcal{N}(0,I).
+        \]
+      </div>
+
+      <p>
+        Then construct \(z\) deterministically from \(\epsilon\):
+      </p>
+
+      <div class="formula">
+        \[
+          \boxed{
+          z
+          =
+          \mu_\phi(x)
+          +
+          \sigma_\phi(x)\odot\epsilon
+          }
+        \]
+      </div>
+
+      <p>
+        where \(\odot\) denotes element-wise multiplication.
+      </p>
+
+      <p>
+        This construction has exactly the desired distribution:
+      </p>
+
+      <div class="formula">
+        \[
+          z
+          \sim
+          \mathcal{N}
+          \left(
+          \mu_\phi(x),
+          \operatorname{diag}
+          \left(\sigma_\phi^2(x)\right)
+          \right).
+        \]
+      </div>
+
+      <div class="callout intuition">
+        <strong>Key idea:</strong>
+        The randomness is isolated in \(\epsilon\), which is independent of
+        the learnable parameters. The sampled latent variable \(z\) is then a
+        differentiable function of \(x\), \(\mu_\phi(x)\), and
+        \(\sigma_\phi(x)\).
+      </div>
+
+      <p>
+        This is what makes ordinary gradient-based optimization practical for
+        the VAE.
+      </p>
+    </section>
+
+    <section id="decoder">
+      <h2>9. Choosing a Gaussian Decoder</h2>
+
+      <p>
+        To evaluate the likelihood term, we need to specify a probability
+        distribution for \(p_\theta(x\mid z)\). A simple design choice used
+        in the notes is a unit-covariance Gaussian centered at the decoder
+        output:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x\mid z)
+          =
+          \mathcal{N}
+          \left(
+          x;\hat{x}_\theta(z),I
+          \right).
+        \]
+      </div>
+
+      <p>
+        Its log likelihood is
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+        \log p_\theta(x\mid z)
+        &=
+        \log
+        \left[
+        \frac{1}{(2\pi)^{d/2}}
+        \exp
+        \left(
+        -\frac{1}{2}
+        \|x-\hat{x}_\theta(z)\|_2^2
+        \right)
+        \right] \\
+        &=
+        -\frac{d}{2}\log(2\pi)
+        -
+        \frac{1}{2}
+        \|x-\hat{x}_\theta(z)\|_2^2.
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        Since the first term is constant with respect to the decoder
+        parameters, maximizing the Gaussian log likelihood corresponds to
+        minimizing a squared reconstruction error:
+      </p>
+
+      <div class="formula">
+        \[
+          \log p_\theta(x\mid z)
+          \propto
+          -
+          \|x-\hat{x}_\theta(z)\|_2^2.
+        \]
+      </div>
+
+      <div class="callout warning">
+        <strong>Important:</strong>
+        The reconstruction loss is not an arbitrary addition to the VAE.
+        Its precise form follows from the likelihood distribution chosen for
+        \(p_\theta(x\mid z)\). Here, a unit-covariance Gaussian gives a
+        squared-error term.
+      </div>
+    </section>
+
+    <section id="kl">
+      <h2>10. The KL-Divergence Term</h2>
+
+      <p>
+        The other component of the VAE objective is
+      </p>
+
+      <div class="formula">
+        \[
+          D_{\mathrm{KL}}
+          \left(
+          q_\phi(z\mid x)\,\|\,p_\theta(z)
+          \right).
+        \]
+      </div>
+
+      <p>
+        A common prior is a standard normal:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(z)=\mathcal{N}(0,I).
+        \]
+      </div>
+
+      <p>
+        If the encoder produces a diagonal Gaussian posterior,
+      </p>
+
+      <div class="formula">
+        \[
+          q_\phi(z\mid x)
+          =
+          \mathcal{N}
+          \left(
+          \mu_\phi(x),
+          \operatorname{diag}(\sigma_\phi^2(x))
+          \right),
+        \]
+      </div>
+
+      <p>
+        the KL divergence between the two Gaussians has a closed-form
+        expression:
+      </p>
+
+      <div class="formula">
+        \[
+          \boxed{
+          D_{\mathrm{KL}}
+          \left(
+          q_\phi(z\mid x)\,\|\,\mathcal{N}(0,I)
+          \right)
+          =
+          \frac{1}{2}
+          \sum_{j=1}^{d_z}
+          \left(
+          \mu_j^2
+          +
+          \sigma_j^2
+          -
+          1
+          -
+          \log\sigma_j^2
+          \right)
+          }
+        \]
+      </div>
+
+      <p>
+        This term encourages the encoder's latent distribution to remain close
+        to the chosen prior \(\mathcal{N}(0,I)\). This is important because
+        generation can then proceed by sampling a latent vector from the
+        prior and passing it through the decoder.
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(z\sim\mathcal{N}(0,I)\)
+            <small>sample from prior</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(p_\theta(x\mid z)\)
+            <small>decoder</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(x\)
+            <small>generated sample</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="training">
+      <h2>11. Putting Everything Together: Training the VAE</h2>
+
+      <p>
+        Combining the Gaussian decoder and Gaussian posterior gives the
+        practical VAE training objective.
+      </p>
+
+      <p>
+        For a minibatch \(\{x_i\}_{i=1}^{M}\), sample
+      \(\epsilon_i\sim\mathcal{N}(0,I)\) and construct
+      </p>
+
+      <div class="formula">
+        \[
+          z_i
+          =
+          \mu_\phi(x_i)
+          +
+          \sigma_\phi(x_i)\odot\epsilon_i.
+        \]
+      </div>
+
+      <p>
+        The empirical ELBO can then be approximated using Monte Carlo samples:
+      </p>
+
+      <div class="formula">
+        \[
+          \widehat{\mathcal{L}}(\theta,\phi)
+          =
+          \frac{1}{M}
+          \sum_{i=1}^{M}
+          \left[
+          \log p_\theta(x_i\mid z_i)
+          -
+          D_{\mathrm{KL}}
+          \left(
+          q_\phi(z\mid x_i)
+          \,\|\,p_\theta(z)
+          \right)
+          \right].
+        \]
+      </div>
+
+      <p>
+        With the unit-covariance Gaussian decoder, maximizing this objective
+        is equivalent, up to constants and scaling, to minimizing a loss of
+        the form
+      </p>
+
+      <div class="formula">
+        \[
+          \boxed{
+          \mathcal{L}_{\mathrm{VAE}}
+          =
+          \text{reconstruction error}
+          +
+          \text{KL regularization}
+          }
+        \]
+      </div>
+
+      <p>
+        More explicitly, for the squared-error Gaussian likelihood:
+      </p>
+
+      <div class="formula">
+        \[
+          \mathcal{L}_{\mathrm{loss}}
+          \propto
+          \frac{1}{M}
+          \sum_{i=1}^{M}
+          \|x_i-\hat{x}_\theta(z_i)\|_2^2
+          +
+          D_{\mathrm{KL}}
+          \left(
+          q_\phi(z\mid x_i)\,\|\,\mathcal{N}(0,I)
+          \right).
+        \]
+      </div>
+
+      <h3>11.1 Gradient-based optimization</h3>
+
+      <p>
+        The reparameterized sample makes the objective differentiable with
+        respect to both \(\phi\) and \(\theta\). We can therefore update the
+        parameters using gradient-based optimization:
+      </p>
+
+      <div class="formula">
+        \[
+          \phi^{t+1}
+          =
+          \phi^t
+          +
+          \alpha
+          \nabla_\phi
+          \mathcal{L}(\theta^t,\phi^t),
+        \]
+        \[
+          \theta^{t+1}
+          =
+          \theta^t
+          +
+          \alpha
+          \nabla_\theta
+          \mathcal{L}(\theta^t,\phi^t),
+        \]
+      </div>
+
+      <p class="small">
+        Here \(\alpha\) denotes the learning rate. In practice, one commonly
+        uses a stochastic optimizer such as Adam to perform these updates.
+      </p>
+
+      <h3>11.2 Training loop</h3>
+
+      <ol>
+        <li>Take an observation \(x\).</li>
+        <li>Pass \(x\) through the encoder to obtain \(\mu_\phi(x)\) and \(\sigma_\phi(x)\).</li>
+        <li>Sample \(\epsilon\sim\mathcal{N}(0,I)\).</li>
+        <li>Construct \(z=\mu_\phi(x)+\sigma_\phi(x)\odot\epsilon\).</li>
+        <li>Pass \(z\) through the decoder to obtain \(\hat{x}_\theta(z)\).</li>
+        <li>Compute the reconstruction/likelihood term.</li>
+        <li>Compute the KL divergence to the prior.</li>
+        <li>Combine the terms into the VAE objective.</li>
+        <li>Backpropagate and update \(\phi\) and \(\theta\).</li>
+      </ol>
+    </section>
+
+    <section id="summary">
+      <h2>12. Summary</h2>
+
+      <p>
+        The VAE is not an isolated encoder–decoder trick. It follows from a
+        sequence of ideas in probabilistic modeling.
+      </p>
+
+      <div class="takeaways">
+        <ol>
+          <li>
+            <strong>Latent-variable model:</strong>
+            introduce an unobserved \(z\) and model \(p_\theta(x,z)\).
+          </li>
+          <li>
+            <strong>Marginal likelihood:</strong>
+            \(p_\theta(x)=\int p_\theta(x,z)\,dz\), but the integral can be
+            intractable.
+          </li>
+          <li>
+            <strong>Variational approximation:</strong>
+            introduce \(q_\phi(z\mid x)\) to approximate the latent posterior.
+          </li>
+          <li>
+            <strong>ELBO:</strong>
+            replace the difficult log likelihood with a tractable lower bound.
+          </li>
+          <li>
+            <strong>Two-term interpretation:</strong>
+            maximize reconstruction likelihood while keeping the approximate
+            posterior close to the prior.
+          </li>
+          <li>
+            <strong>Reparameterization:</strong>
+            write \(z=\mu_\phi(x)+\sigma_\phi(x)\odot\epsilon\) so that
+            gradient-based learning can pass through the stochastic sampling
+            operation.
+          </li>
+        </ol>
+      </div>
+
+      <div class="key-result">
+        <strong>The central VAE equation</strong>
+        <div class="formula">
+          \[
+          \boxed{
+          \mathcal{L}(\theta,\phi)
+          =
+          \underbrace{
+          \mathbb{E}_{q_\phi(z\mid x)}
+          [\log p_\theta(x\mid z)]
+          }_{\text{reconstruction / likelihood}}
+          -
+          \underbrace{
+          D_{\mathrm{KL}}
+          \left(
+          q_\phi(z\mid x)\,\|\,p_\theta(z)
+          \right)
+          }_{\text{latent regularization}}
+          }
+          \]
+        </div>
+      </div>
+
+      <p>
+        Once this equation is understood, the familiar VAE architecture
+        becomes much less mysterious: the encoder learns the variational
+        posterior, the reparameterization trick makes its sampling
+        differentiable, and the decoder learns the conditional likelihood.
+      </p>
+
+      <footer>
+        <strong>Course note.</strong>
+        This lesson is based on the supplied handwritten VAE notes and follows
+        their progression: latent-variable models → maximum likelihood →
+        ELBO → GMM/EM → VAE → reparameterization → Gaussian likelihood →
+        KL regularization → training.
+      </footer>
+    </section>
+  </main>
+</div>
+</body>
+</html>
