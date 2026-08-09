@@ -798,7 +798,8 @@
       <div class="formula">
         \[
           \boxed{
-          \log p_\theta(x)
+              \mathbb{E}_{q_\phi(z\mid x)}
+              [\log p_\theta(x\mid z)]
           =
           \mathcal{L}(\theta,q)
           +
@@ -857,6 +858,60 @@
       Instead of directly maximizing the intractable log-likelihood, a VAE
       maximizes the tractable ELBO, which serves as its lower bound.
     </div>
+
+  <h2>The Foundational Problem of All Latent-Variable Models</h2>
+
+  <div class="callout intuition">
+    <strong>Core idea:</strong>
+    Our original goal is to maximize the log-likelihood of the observed data:
+    
+    <div class="formula">
+      \[
+        \theta^*
+        =
+        \arg\max_{\theta}
+        \mathbb{E}_{p_X(x)}
+        \left[
+          \log p_\theta(x)
+        \right].
+      \]
+    </div>
+
+    <p>
+      However, in latent-variable models, computing \(p_\theta(x)\) requires
+      marginalizing over the latent variable \(z\), which is generally
+      intractable. Therefore, we need to find a tractable alternative that
+      allows us to optimize the model.
+    </p>
+
+    <p>
+      Instead of optimizing only with respect to the model parameters
+      \(\theta\), we introduce a variational distribution
+      \(q_\phi(z\mid x)\) and optimize with respect to both \(\theta\) and
+      \(\phi\):
+    </p>
+
+    <div class="formula">
+      \[
+        (\theta^*,\phi^*)
+        =
+        \arg\max_{\theta,\phi}
+        \mathcal{L}(\theta,\phi).
+      \]
+    </div>
+  </div>
+
+<section id="gmm">
+  <h2>5. Gaussian Mixture Model: A Classical Latent-Variable Model</h2>
+
+  <p>
+    Before moving to VAEs, it is useful to see a classical latent-variable
+    model: the Gaussian Mixture Model (GMM).
+  </p>
+
+  <p>
+    Let the latent variable be discrete:
+  </p>
 
     <section id="gmm">
       <h2>5. A Latent-Variable Example: Gaussian Mixture Models</h2>
