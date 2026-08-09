@@ -811,29 +811,29 @@
 
     <p>
       Since the KL divergence is always non-negative,
-      \[
+      \[  \boxed{
         D_{\mathrm{KL}}
         \left(
           q_\phi(z\mid x)
           \,\|\, 
           p_\theta(z\mid x)
         \right)
-        \geq 0,
+        \geq 0,}
       \]
       the ELBO is guaranteed to be a lower bound on the log-likelihood. The bound
       becomes <strong>tight</strong> when
-      \[
-        q_\phi(z\mid x)=p_\theta(z\mid x),
+      \[  \boxed{
+        q_\phi(z\mid x)=p_\theta(z\mid x),}
       \]
       because in that case
-      \[
+      \[  \boxed{
         D_{\mathrm{KL}}
         \left(
           q_\phi(z\mid x)
           \,\|\, 
           p_\theta(z\mid x)
         \right)
-        =0.
+        =0.}
       \]
     </p>
     
@@ -841,10 +841,10 @@
       Our original goal was to maximize the log-likelihood
       \(\log p_\theta(x)\). However, directly computing and optimizing this
       quantity is intractable in a VAE. Since
-      \[
+      \[  \boxed{
         \log p_\theta(x)
         \geq
-        \mathcal{L}(\theta,\phi;x),
+        \mathcal{L}(\theta,q),}
       \]
       we instead maximize the tractable ELBO. By maximizing the ELBO, we increase
       a lower bound on the log-likelihood, thereby indirectly encouraging the
