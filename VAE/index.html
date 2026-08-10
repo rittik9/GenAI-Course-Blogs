@@ -1657,61 +1657,81 @@
       <p>
         The empirical ELBO can then be approximated using Monte Carlo samples:
       </p>
-
+      
       <div class="formula">
         \[
-          \widehat{\mathcal{L}}(\theta,\phi)
+          \mathcal{L}(\theta,\phi)
           =
           \frac{1}{M}
           \sum_{i=1}^{M}
           \left[
-          \log p_\theta(x_i\mid z_i)
-          -
-          D_{\mathrm{KL}}
-          \left(
-          q_\phi(z\mid x_i)
-          \,\|\,p_\theta(z)
-          \right)
+            \log p_\theta(x_i\mid z_i)
+            -
+            D_{\mathrm{KL}}
+            \left(
+              q_\phi(z\mid x_i)
+              \,\|\,p_\theta(z)
+            \right)
           \right].
         \]
       </div>
-
+      
       <p>
-        With the unit-covariance Gaussian decoder, maximizing this objective
-        is equivalent, up to constants and scaling, to minimizing a loss of
-        the form
+        For a unit-covariance Gaussian decoder,
+        \(p_\theta(x\mid z)=\mathcal{N}(\hat{x}_\theta(z),I)\), the reconstruction
+        log-likelihood is proportional to the negative squared reconstruction error:
       </p>
-
+      
+      <div class="formula">
+        \[
+          \log p_\theta(x_i\mid z_i)
+          \propto
+          -\frac{1}{2}
+          \left\|
+            x_i-\hat{x}_\theta(z_i)
+          \right\|_2^2.
+        \]
+      </div>
+      
+      <p>
+        Therefore, maximizing the ELBO is equivalent, up to constants and scaling,
+        to minimizing the following loss:
+      </p>
+      
       <div class="formula">
         \[
           \boxed{
           \mathcal{L}_{\mathrm{VAE}}
           =
-          \text{reconstruction error}
-          +
-          \text{KL regularization}
+          \frac{1}{M}
+          \sum_{i=1}^{M}
+          \left[
+            \left\|
+              x_i-\hat{x}_\theta(z_i)
+            \right\|_2^2
+            +
+            D_{\mathrm{KL}}
+            \left(
+              q_\phi(z\mid x_i)
+              \,\|\,\mathcal{N}(0,I)
+            \right)
+          \right]
           }
         \]
       </div>
-
-      <p>
-        More explicitly, for the squared-error Gaussian likelihood:
-      </p>
-
-      <div class="formula">
-        \[
-          \mathcal{L}_{\mathrm{loss}}
-          \propto
-          \frac{1}{M}
-          \sum_{i=1}^{M}
-          \|x_i-\hat{x}_\theta(z_i)\|_2^2
-          +
-          D_{\mathrm{KL}}
-          \left(
-          q_\phi(z\mid x_i)\,\|\,\mathcal{N}(0,I)
-          \right).
-        \]
+      
+      <div class="callout">
+        <strong>VAE Loss = Reconstruction Error + KL Regularization</strong>
+        
+        <p>
+          The reconstruction term encourages the decoder to reconstruct the input
+          accurately, while the KL divergence regularizes the learned latent
+          distribution \(q_\phi(z\mid x)\) to remain close to the prior
+          \(\mathcal{N}(0,I)\).
+        </p>
       </div>
+
+
 
       <h3>11.1 Gradient-based optimization</h3>
 
