@@ -476,7 +476,7 @@
     </div>
 
     <section id="motivation">
-      <h2>Motivation: What Are We Trying to Learn in a Generative Model?</h2>
+      <h2>1. Motivation: What Are We Trying to Learn in a Generative Model?</h2>
 
       <p>
         Suppose we are given a dataset
@@ -1052,12 +1052,12 @@
         \[
           p_\theta(x)
           =
-          \sum_{z=1}^{M}
-          p_\theta(x,z)
+          \sum_{j=1}^{M}
+          p_\theta(x,z_j)
           =
-          \sum_{z=1}^{M}
-          p_\theta(z)\,
-          p_\theta(x\mid z).
+          \sum_{j=1}^{M}
+          p_\theta(z_j)\,
+          p_\theta(x\mid z_j).
         \]
       </div>
 
@@ -1068,19 +1068,30 @@
       <div class="formula">
         \[
           \boxed{
-          p_\theta(x)
-          =
-          \sum_{j=1}^{M}
-          \alpha_j\,
-          \mathcal{N}
-          \left(
-          x;\mu_j,\Sigma_j
-          \right)
+            p_\theta(x)
+            =
+            \sum_{j=1}^{M}
+            \alpha_j\,
+            \mathcal{N}\!\left(x;\mu_j,\Sigma_j\right)
           }
         \]
+      
+        <p>
+          where
+          \(\alpha_j = p_\theta(z_j)\) is the mixing coefficient associated with the
+          \(j\)-th Gaussian component, and
+          \(\mathcal{N}\!\left(x;\mu_j,\Sigma_j\right)
+          = p_\theta(x\mid z_j)\) is the likelihood of \(x\) given the latent variable
+          \(z_j\).
+        </p>
       </div>
 
       <p>
+        <p>
+        This is why the model is called a <strong>Gaussian Mixture Model (GMM)</strong>:
+        the likelihood of each data point is modeled as a weighted linear combination
+        of multiple Gaussian distributions.
+        </p>
         Here, the mixture weights satisfy
       </p>
 
@@ -1171,19 +1182,43 @@
 
       <div class="formula">
         \[
+        \begin{aligned}
           q_{t+1}(z=j\mid x)
-          =
-          p_{\theta_t}(z=j\mid x)
-          =
-          \frac{
-          p_{\theta_t}(x\mid z=j)\,
-          p_{\theta_t}(z=j)
+          &= p_{\theta_t}(z=j\mid x) \\[4pt]
+          &= \frac{
+            p_{\theta_t}(x\mid z=j)\,
+            p_{\theta_t}(z=j)
           }{
-          p_{\theta_t}(x)
+            p_{\theta_t}(x)
+          }
+          \qquad \text{(Bayes' rule)}
+          \\[8pt]
+          &= \frac{
+            \mathcal{N}\!\left(x;\mu_j^{t},\Sigma_j^{t}\right)\alpha_j^{t}
+          }{
+            \displaystyle
+            \sum_{i=1}^{M}
+            \mathcal{N}\!\left(x;\mu_i^{t},\Sigma_i^{t}\right)\alpha_i^{t}
           }.
+        \end{aligned}
         \]
       </div>
-
+      <p>
+        Here, the marginal likelihood is
+      </p>
+      
+      <div class="formula">
+        \[
+          p_{\theta_t}(x)
+          =
+          \sum_{i=1}^{M}
+          p_{\theta_t}(x\mid z=i)\,
+          p_{\theta_t}(z=i)
+          =
+          \sum_{i=1}^{M}
+          \mathcal{N}\!\left(x;\mu_i^{t},\Sigma_i^{t}\right)\alpha_i^{t}.
+        \]
+      </div>
       <p>
         The M-step then updates the parameters using these responsibilities.
       </p>
@@ -1191,17 +1226,18 @@
       <div class="callout intuition">
         <strong>Why EM matters for VAEs:</strong>
         EM illustrates a recurring latent-variable pattern: inference over
-        \(z\) and learning the model parameters are coupled. When the exact
-        posterior is easy to compute, we can use it. When it is not, we need
+        \(z\) and learning the model parameters are coupled.   When the exact posterior \(p_{\theta_t}(z=j\mid x)\) is easy to compute,
+        we can use it directly. When it is not, we need
         an approximation. That is the problem the VAE addresses with a
         learned variational posterior.
       </div>
 
-      <p>
-        The notes also highlight an important property of EM: under the usual
-        assumptions, the likelihood does not decrease from one EM iteration
-        to the next.
-      </p>
+
+      <div class="callout">
+        <strong>One Important Property of the EM Algorithm:</strong>
+        Under the usual assumptions, the likelihood is guaranteed not to decrease
+        from one EM iteration to the next.
+      </div>
     </section>
 
     <section id="vae">
