@@ -1383,10 +1383,13 @@
 
       <p>
         We want to sample \(z\) while still allowing gradients to propagate
-        through \(\mu_\phi(x)\) and \(\sigma_\phi(x)\).
+        through \(\mu_\phi(x)\) and \(\sigma_\phi(x)\). However, directly sampling
+        from \(q_\phi(z\mid x)\) introduces stochasticity into the computation,
+        which prevents gradients from being propagated through the sampling
+        operation.
       </p>
 
-      <h3>8.1 Reparameterizing the Gaussian sample</h3>
+      <h3>Reparameterizing the Gaussian sample</h3>
 
       <p>
         Instead of sampling \(z\) directly from
