@@ -669,7 +669,7 @@
         <div class="formula">
           \[
             \boxed{
-            \mathcal{L}(\theta,q)
+            \mathcal{L}(\theta,\phi)
             =
             \mathbb{E}_{q_\phi(z\mid x)}
             \left[
@@ -703,7 +703,7 @@
       <div class="formula">
         \[
         \begin{aligned}
-        \mathcal{L}(\theta,q)
+        \mathcal{L}(\theta,\phi)
         &=
         \mathbb{E}_{q_\phi(z\mid x)}
         [\log p_\theta(x\mid z)] \\
@@ -744,7 +744,7 @@
         <div class="formula">
           \[
           \boxed{
-          \mathcal{L}(\theta,q)
+          \mathcal{L}(\theta,\phi)
           =
           \mathbb{E}_{q_\phi(z\mid x)}
           [\log p_\theta(x\mid z)]
@@ -801,7 +801,7 @@
               \mathbb{E}_{q_\phi(z\mid x)}
               [\log p_\theta(x\mid z)]
           =
-          \mathcal{L}(\theta,q)
+          \mathcal{L}(\theta,\phi)
           +
           D_{\mathrm{KL}}
           \left(
@@ -846,7 +846,7 @@
       \[  \boxed{
         \log p_\theta(x)
         \geq
-        \mathcal{L}(\theta,q),}
+        \mathcal{L}(\theta,\phi),}
       \]
       we instead maximize the tractable ELBO. By maximizing the ELBO, we increase
       a lower bound on the log-likelihood, thereby indirectly encouraging the
@@ -863,7 +863,7 @@
 
   <div class="callout intuition">
     <strong>Core idea:</strong>
-    Our original goal in a Generative MOdel is to maximize the log-likelihood of the observed data:
+     Our original goal in a generative model is to maximize the log-likelihood of the observed data:
     
     <div class="formula">
       \[
@@ -880,8 +880,8 @@
     <p>
       However, in latent-variable models, computing \(p_\theta(x)\) requires
       marginalizing over the latent variable \(z\), which is generally
-      intractable. Therefore, we need to find a tractable alternative ELBO that
-      allows us to optimize the model.
+      intractable. Therefore, we need to find a tractable alternative, the ELBO, that allows us
+      to optimize the model.
     </p>
     
     <div class="formula">
