@@ -355,7 +355,59 @@
     .figure-credit a:hover {
       text-decoration: underline;
     }
-  </style>
+
+      .big-picture {
+    padding: 24px 28px;
+  }
+
+  .big-picture h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.25rem;
+  }
+
+  .big-picture-figure {
+    width: 100%;
+    margin: 22px auto;
+    text-align: center;
+  }
+
+  .big-picture-diagram {
+    display: block;
+    width: 75%;
+    max-width: 650px;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 8px;
+  }
+
+  .figure-credit {
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-size: 0.72rem;
+    color: #777;
+    text-align: center;
+  }
+
+  .figure-credit a {
+    color: #557a9e;
+    text-decoration: none;
+  }
+
+  .figure-credit a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 700px) {
+    .big-picture {
+      padding: 20px;
+    }
+
+    .big-picture-diagram {
+      width: 100%;
+    }
+}
+      </style>
 </head>
 
 <body>
@@ -385,6 +437,43 @@
       <div class="eyebrow">Generative AI Course · Topic 01</div>
       <h1>Variational Autoencoders</h1>
     </header>
+    
+    <div class="callout intuition big-picture">
+      <h3>Big Picture</h3>
+    
+      <p>
+        A <strong>Variational Autoencoder (VAE)</strong> is a special kind of
+        <strong>generative model</strong> and <strong>latent-variable model</strong>.
+        The key idea is to model a complex, high-dimensional data distribution
+        through a much simpler, low-dimensional latent distribution.
+      </p>
+    
+      <div class="big-picture-figure">
+        <img
+          src="images/vae-diagram.png"
+          alt="Variational Autoencoder architecture"
+          class="big-picture-diagram"
+        />
+    
+        <p class="figure-credit">
+          <a
+            href="https://medium.com/@judyyes10/generate-images-using-variational-autoencoder-vae-4d429d9bdb5"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Image Source
+          </a>
+        </p>
+      </div>
+    
+      <p>
+        Instead of directly modeling the complicated distribution of the observed
+        data \(x\), a VAE assumes that the data is generated from an underlying
+        latent variable \(z\). We model the latent space with a simple prior
+        distribution and learn how to map between the latent representation and
+        the observed data.
+      </p>
+    </div>
 
     <section id="motivation">
       <h2>Motivation: What Are We Trying to Learn in a Generative Model?</h2>
