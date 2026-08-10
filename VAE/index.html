@@ -863,7 +863,7 @@
 
   <div class="callout intuition">
     <strong>Core idea:</strong>
-    Our original goal is to maximize the log-likelihood of the observed data:
+    Our original goal in a Generative MOdel is to maximize the log-likelihood of the observed data:
     
     <div class="formula">
       \[
@@ -880,17 +880,10 @@
     <p>
       However, in latent-variable models, computing \(p_\theta(x)\) requires
       marginalizing over the latent variable \(z\), which is generally
-      intractable. Therefore, we need to find a tractable alternative that
+      intractable. Therefore, we need to find a tractable alternative ELBO that
       allows us to optimize the model.
     </p>
-
-    <p>
-      Instead of optimizing only with respect to the model parameters
-      \(\theta\), we introduce a variational distribution
-      \(q_\phi(z\mid x)\) and optimize with respect to both \(\theta\) and
-      \(\phi\):
-    </p>
-
+    
     <div class="formula">
       \[
         (\theta^*,\phi^*)
