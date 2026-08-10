@@ -1313,7 +1313,7 @@
       encoder–decoder structure.
       </p>
 
-      <h3>7.1 The VAE objective</h3>
+      <h3>The VAE objective</h3>
 
       <p>
         The ELBO becomes
@@ -1502,6 +1502,11 @@
       </div>
 
       <p>
+        where \(d\) is the dimensionality of the observed data \(x\), and
+        \(\hat{x}_\theta(z)\) is the reconstruction produced by the decoder.
+      </p>
+
+      <p>
         Since the first term is constant with respect to the decoder
         parameters, maximizing the Gaussian log likelihood corresponds to
         minimizing a squared reconstruction error:
@@ -1594,6 +1599,10 @@
           }
         \]
       </div>
+      <p>
+        Here, \(d_z\) denotes the dimensionality of the latent variable \(z\), and
+        the summation is taken over all \(d_z\) latent dimensions.
+      </p>
 
       <p>
         This term encourages the encoder's latent distribution to remain close
@@ -1615,7 +1624,7 @@
           </div>
           <div class="arrow">→</div>
           <div class="box">
-            \(x\)
+            \(\hat{x}\)
             <small>generated sample</small>
           </div>
         </div>
@@ -1826,10 +1835,7 @@
 
       <footer>
         <strong>Course note.</strong>
-        This lesson is based on the supplied handwritten VAE notes and follows
-        their progression: latent-variable models → maximum likelihood →
-        ELBO → GMM/EM → VAE → reparameterization → Gaussian likelihood →
-        KL regularization → training.
+        This lesson is based on the supplied handwritten VAE notes of Rittik Panda.
       </footer>
     </section>
   </main>
