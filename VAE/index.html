@@ -1108,34 +1108,40 @@
         parameters \(\theta\).
       </p>
 
-      <div class="diagram">
-        <div class="pipeline">
-          <div class="box">
-            \(x\)
-            <small>observation</small>
-          </div>
-          <div class="arrow">→</div>
-          <div class="box">
-            \(q_\phi(z\mid x)\)
-            <small>encoder</small>
-          </div>
-          <div class="arrow">→</div>
-          <div class="box">
-            \(z\)
-            <small>latent sample</small>
-          </div>
-          <div class="arrow">→</div>
-          <div class="box">
-            \(p_\theta(x\mid z)\)
-            <small>decoder</small>
-          </div>
-          <div class="arrow">→</div>
-          <div class="box">
-            \(\hat{x}\)
-            <small>reconstruction</small>
-          </div>
-        </div>
+    <div class="vae-flow">
+      <div class="flow-box">
+        <strong>Observation</strong>
+        <span>\(x\)</span>
       </div>
+    
+      <div class="flow-arrow">→</div>
+    
+      <div class="flow-box">
+        <strong>\(q_\phi(z\mid x)\)</strong>
+        <span>encoder</span>
+      </div>
+    
+      <div class="flow-arrow">→</div>
+    
+      <div class="flow-box">
+        <strong>\(z\)</strong>
+        <span>latent sample</span>
+      </div>
+    
+      <div class="flow-arrow">→</div>
+    
+      <div class="flow-box">
+        <strong>\(p_\theta(x\mid z)\)</strong>
+        <span>decoder</span>
+      </div>
+    
+      <div class="flow-arrow">→</div>
+    
+      <div class="flow-box">
+        <strong>Reconstruction</strong>
+        <span>\(\hat{x}\)</span>
+      </div>
+    </div>
 
       <p>
         The encoder does not directly output a single deterministic latent
