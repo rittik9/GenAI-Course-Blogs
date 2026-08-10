@@ -1173,8 +1173,11 @@
       <div class="formula">
         \[
         \begin{aligned}
-          q_{t+1}(z=j\mid x)
-          &= p_{\theta_t}(z=j\mid x) \\[4pt]
+          q_{t+1}
+          &= \arg\max_q \mathcal{L}(\theta_t,q) \\[4pt]
+          \text{Now,}\quad
+          \mathcal{L}(\theta_t,q)
+          &= p_{\theta_t}(z=j\mid x) \\[6pt]
           &= \frac{
             p_{\theta_t}(x\mid z=j)\,
             p_{\theta_t}(z=j)
