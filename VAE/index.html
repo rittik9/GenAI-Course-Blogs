@@ -1108,40 +1108,22 @@
         parameters \(\theta\).
       </p>
 
-    <div class="vae-flow">
-      <div class="flow-box">
-        <strong>Observation</strong>
-        <span>\(x\)</span>
+      <div class="vae-figure">
+        <img
+          src="images/vae-diagram.png"
+          alt="Variational Autoencoder architecture showing the probabilistic encoder, latent variable z, and probabilistic decoder"
+          class="vae-diagram"
+        />
+      
+        <p class="figure-credit">
+          Figure adapted from
+          <a href="https://medium.com/@judyyes10/generate-images-using-variational-autoencoder-vae-4d429d9bdb5"
+             target="_blank"
+             rel="noopener noreferrer">
+            here
+          </a>.
+        </p>
       </div>
-    
-      <div class="flow-arrow">→</div>
-    
-      <div class="flow-box">
-        <strong>\(q_\phi(z\mid x)\)</strong>
-        <span>encoder</span>
-      </div>
-    
-      <div class="flow-arrow">→</div>
-    
-      <div class="flow-box">
-        <strong>\(z\)</strong>
-        <span>latent sample</span>
-      </div>
-    
-      <div class="flow-arrow">→</div>
-    
-      <div class="flow-box">
-        <strong>\(p_\theta(x\mid z)\)</strong>
-        <span>decoder</span>
-      </div>
-    
-      <div class="flow-arrow">→</div>
-    
-      <div class="flow-box">
-        <strong>Reconstruction</strong>
-        <span>\(\hat{x}\)</span>
-      </div>
-    </div>
 
       <p>
         The encoder does not directly output a single deterministic latent
