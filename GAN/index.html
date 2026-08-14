@@ -1324,11 +1324,11 @@ the behavior we want.
 
 <div class="formula">
 \[
-D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
+D_{\mathrm{JS}}\!\left(p_\theta\,\|\,p_x\right)
 =
-\underbrace{\frac{1}{2}\int p_x(x)\log\left[\frac{2\,p_x(x)}{p_x(x)+p_\theta(x)}\right]dx}_{\text{quality}}
+\underbrace{\frac{1}{2}\int p_\theta(\tilde x)\log\left[\frac{2\,p_\theta(\tilde x)}{p_x(\tilde x)+p_\theta(\tilde x)}\right]d\tilde x}_{\text{quality}}
 \;+\;
-\underbrace{\frac{1}{2}\int p_\theta(\tilde x)\log\left[\frac{2\,p_\theta(\tilde x)}{p_x(\tilde x)+p_\theta(\tilde x)}\right]d\tilde x}_{\text{coverage}}.
+\underbrace{\frac{1}{2}\int p_x(x)\log\left[\frac{2\,p_x(x)}{p_x(x)+p_\theta(x)}\right]dx}_{\text{coverage}}.
 \]
 </div>
 
@@ -1336,21 +1336,22 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 <div class="concept-box">
 <h3>Quality term</h3>
 <p>
-  Weighted by the <strong>real</strong> data density \(p_x(x)\). It stays
-  small only where every real-data region is matched by enough generator
-  density \(p_\theta(x)\). If the generator puts mass somewhere real data
-  barely exists, this term is penalized — it enforces that generated
-  samples \(\tilde x=G_\theta(z)\) look <strong>realistic</strong>.
+  Weighted by the <strong>generated</strong> sample density
+  \(p_\theta(\tilde x)\). It stays small only where every generated sample
+  \(\tilde x=G_\theta(z)\) lands in a region real data \(p_x(\tilde x)\)
+  also occupies. If the generator produces samples in regions where real
+  data barely exists, this term is penalized - it enforces that generated
+  samples look <strong>realistic</strong>.
 </p>
 </div>
 
 <div class="concept-box">
 <h3>Coverage term</h3>
 <p>
-  Weighted by the <strong>generator's</strong> density \(p_\theta(\tilde x)\).
-  It stays small only where every generated region is matched by enough
-  real density \(p_x(\tilde x)\). If the generator ignores a real mode
-  entirely, this term barely notices — it enforces that \(p_\theta\) spans
+  Weighted by the <strong>real</strong> data density \(p_x(x)\). It stays
+  small only where every region of real data \(x\) is matched by enough
+  generator density \(p_\theta(x)\). If the generator ignores a real mode
+  entirely, this term is penalized - it enforces that \(p_\theta\) spans
   the full <strong>diversity</strong> of \(p_x\).
 </p>
 </div>
@@ -1361,14 +1362,16 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 <p>
   The generator \(G_\theta\) directly controls where it places its
   probability mass \(p_\theta\), so it feels the quality term's penalty
-  strongly and immediately. But the coverage term is weighted by
-  \(p_\theta\) itself — regions the generator never visits contribute
-  nothing to its own weighting, so real modes it skips go essentially
-  unpunished. The generator therefore has every incentive to be
-  <em>accurate</em> wherever it chooses to generate, but only a weak,
-  indirect incentive to be <em>diverse</em>. The easiest way to minimize
-  loss is to camp on a few safe, realistic modes and ignore the rest —
-  exactly what we observe as <strong>mode dropping</strong>.
+  strongly and immediately - every sample it produces is weighted by its
+  own density. But the coverage term is weighted by \(p_x\), the fixed
+  real data distribution - the generator has no control over which real
+  modes get "attention" in this term. Its only influence is through
+  \(p_\theta(x)\) inside the log, a comparatively weak, indirect signal.
+  The generator therefore has every incentive to be <em>accurate</em>
+  wherever it chooses to generate, but only a weak incentive to be
+  <em>diverse</em>. The easiest way to minimize loss is to camp on a few
+  safe, realistic modes and ignore the rest - exactly what we observe as
+  <strong>mode dropping</strong>.
 </p>
 </div>
 
