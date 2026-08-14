@@ -727,14 +727,14 @@ generator.
       </marker>
     </defs>
   
-    <!-- ===== Discriminator loss box (top-right, mirrors generator loss box) ===== -->
+    <!-- ===== Discriminator loss box (top-right) ===== -->
     <rect x="590" y="40" width="350" height="96" rx="10"
           fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
     <text x="765" y="64" text-anchor="middle" font-size="14.5" font-weight="700" fill="var(--accent)">
       Discriminator loss, L(&#966;)
     </text>
-    <text x="765" y="87" text-anchor="middle" font-size="13" fill="#2c3e52" font-style="italic">
-      &#8722;&#931;<tspan baseline-shift="sub" font-size="9">j</tspan> log(1&#8722;D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(x&#771;<tspan baseline-shift="sub" font-size="9">j</tspan>)) &#8722; &#931;<tspan baseline-shift="sub" font-size="9">i</tspan> log D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(x<tspan baseline-shift="sub" font-size="9">i</tspan>)
+    <text x="765" y="88" text-anchor="middle" font-size="12.5" fill="#2c3e52" font-style="italic">
+      &#966;* = argmin<tspan baseline-shift="sub" font-size="9">&#966;</tspan> [ &#8722;&#931;<tspan baseline-shift="sub" font-size="9">j</tspan> log(1&#8722;D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(x&#771;<tspan baseline-shift="sub" font-size="9">j</tspan>)) &#8722; &#931;<tspan baseline-shift="sub" font-size="9">i</tspan> log D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(x<tspan baseline-shift="sub" font-size="9">i</tspan>) ]
     </text>
     <text x="765" y="108" text-anchor="middle" font-size="11" fill="#606873">
       Generated x&#771; &#8594; low probability
@@ -743,19 +743,19 @@ generator.
       Real x &#8594; high probability
     </text>
   
-    <!-- ===== Generator loss box (bottom-left, mirrors discriminator loss box) ===== -->
+    <!-- ===== Generator loss box (bottom-left) ===== -->
     <rect x="40" y="424" width="350" height="96" rx="10"
           fill="var(--green-soft)" stroke="var(--green)" stroke-width="1.5"/>
     <text x="215" y="448" text-anchor="middle" font-size="14.5" font-weight="700" fill="var(--green)">
       Generator loss, L(&#952;)
     </text>
-    <text x="215" y="471" text-anchor="middle" font-size="13" fill="#2c3e52" font-style="italic">
-      &#931;<tspan baseline-shift="sub" font-size="9">j</tspan> log(1&#8722;D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(G<tspan baseline-shift="sub" font-size="9">&#952;</tspan>(z<tspan baseline-shift="sub" font-size="9">j</tspan>)))
+    <text x="215" y="472" text-anchor="middle" font-size="12.5" fill="#2c3e52" font-style="italic">
+      &#952;* = argmin<tspan baseline-shift="sub" font-size="9">&#952;</tspan> [ &#931;<tspan baseline-shift="sub" font-size="9">j</tspan> log(1&#8722;D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(G<tspan baseline-shift="sub" font-size="9">&#952;</tspan>(z<tspan baseline-shift="sub" font-size="9">j</tspan>))) ]
     </text>
-    <text x="215" y="492" text-anchor="middle" font-size="11" fill="#606873">
+    <text x="215" y="493" text-anchor="middle" font-size="11" fill="#606873">
       Generated x&#771;=G&#952;(z) &#8594; should fool
     </text>
-    <text x="215" y="507" text-anchor="middle" font-size="11" fill="#606873">
+    <text x="215" y="508" text-anchor="middle" font-size="11" fill="#606873">
       the discriminator into high probability
     </text>
   
@@ -763,11 +763,9 @@ generator.
   
     <!-- z_j -->
     <text x="35" y="266" text-anchor="middle" font-size="17" font-style="italic" fill="#233f5e">z<tspan baseline-shift="sub" font-size="11">j</tspan></text>
-    <text x="35" y="335" text-anchor="middle" font-size="11.5" fill="#606873">&#8195;</text>
-    <line x1="35" y1="280" x2="35" y2="290" stroke="none"/>
+    <line x1="35" y1="280" x2="35" y2="330" stroke="#9eabbc" stroke-dasharray="3,3"/>
     <text x="35" y="345" text-anchor="middle" font-size="11.5" fill="#606873">Latent</text>
     <text x="35" y="359" text-anchor="middle" font-size="11.5" fill="#606873">variable</text>
-    <line x1="35" y1="280" x2="35" y2="330" stroke="#9eabbc" stroke-dasharray="3,3"/>
   
     <line x1="52" y1="270" x2="95" y2="270" stroke="#69778a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
   
@@ -781,12 +779,12 @@ generator.
     <line x1="242" y1="270" x2="308" y2="270" stroke="#69778a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
     <text x="275" y="250" text-anchor="middle" font-size="11" fill="#606873" font-style="italic">x&#771;<tspan baseline-shift="sub" font-size="8">j</tspan></text>
   
-    <!-- Real examples, feeding into Data box from above (centered over midpoint) -->
+    <!-- Real examples -->
     <text x="392" y="172" text-anchor="middle" font-size="13" fill="#354f6b" font-weight="600">Real examples</text>
     <text x="392" y="189" text-anchor="middle" font-size="13" fill="#354f6b" font-style="italic">{x&#7522;}</text>
     <line x1="392" y1="196" x2="392" y2="228" stroke="#9eabbc" stroke-dasharray="3,3"/>
   
-    <!-- Data box (centered) -->
+    <!-- Data box -->
     <rect x="310" y="230" width="145" height="80" rx="10" fill="#fff" stroke="#9eabbc" stroke-width="1.5"/>
     <text x="382" y="262" text-anchor="middle" font-size="12" fill="#4d5965">Generated &amp; Real</text>
     <text x="350" y="288" text-anchor="middle" font-size="16" fill="#a8b3c0">&#8593;</text>
@@ -812,11 +810,11 @@ generator.
     <path d="M 758 293 Q 811 250 884 250" fill="none" stroke="#9eabbc" stroke-width="2"/>
     <text x="811" y="326" text-anchor="middle" font-size="12.5" fill="#75828d">Probability is real</text>
   
-    <!-- Feedback: Output -> Discriminator loss (curved, symmetric radius) -->
+    <!-- Feedback: Output -> Discriminator loss -->
     <path d="M 865 230 Q 865 165 780 136" fill="none" stroke="var(--accent)"
           stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead-accent)"/>
   
-    <!-- Feedback: Generator loss -> Generator (curved, symmetric radius) -->
+    <!-- Feedback: Generator loss -> Generator -->
     <path d="M 215 424 Q 215 360 169 312" fill="none" stroke="var(--green)"
           stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead-green)"/>
   
@@ -827,8 +825,9 @@ generator.
     \(z_j\sim\mathcal{N}(0,I)\) is passed through the generator to produce
     \(\tilde x_j=G_\theta(z_j)\). Real and generated samples are passed to the
     discriminator \(D_\phi\), which outputs the probability each is real.
-    \(\phi\) is updated to correctly separate real from generated samples;
-    \(\theta\) is updated to fool the discriminator.
+    \(\phi\) is updated to minimize \(L(\phi)\), correctly separating real
+    from generated samples; \(\theta\) is updated to minimize \(L(\theta)\),
+    fooling the discriminator.
   </p>
   </div>
 
