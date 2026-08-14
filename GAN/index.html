@@ -583,14 +583,16 @@ output on generated samples.
 </p>
 
 <div class="formula">
-\[
-\theta^*
-=
-\arg\max_\theta
-\sum_j
-\log D_\phi\!\left(G_\theta(z_j)\right).
-\]
-</div>
+  \[
+  \theta^*
+  =
+  \arg\max_\theta
+  \left[
+  -\sum_j
+  \log D_\phi\!\left(G_\theta(z_j)\right)
+  \right].
+  \]
+  </div>
 
 <p>
 This creates the adversarial interaction between the generator and discriminator:
@@ -608,34 +610,68 @@ while the generator tries to fool the discriminator.
 </p>
 
 <p>
-These two objectives oppose each other, resulting in a
-<strong>minimax game</strong>.
+  Now we have two objectives for the Discriminator and Generator, respectively:
+</p>
+
+
+<div class="formula">
+  \[
+  \begin{aligned}
+  \phi^*
+  &=
+  \arg\min_\phi
+  \left[
+    -\sum_i \log D_\phi(x_i)
+    -\sum_j \log\left(1-D_\phi(\tilde{x}_j)\right)
+  \right],
+  \\[10pt]
+  \theta^*
+  &=
+  \arg\max_\theta
+  \left[
+    -\sum_j
+    \log D_\phi\!\left(G_\theta(z_j)\right)
+  \right]
+  \\[4pt]
+  &=
+  \arg\min_\theta
+  \left[
+    \sum_j
+    \log D_\phi\!\left(G_\theta(z_j)\right)
+  \right].
+  \end{aligned}
+  \]
+</div>
+
+
+<p>
+  Together, the overall GAN objective can be written as:
 </p>
 
 <div class="formula">
-\[
-\boxed{\min_\theta\max_\phi V(\theta,\phi)}
-\]
+  \[
+  \boxed{
+  \begin{aligned}
+  \theta^*,\phi^*
+  &=
+  \arg\max_{\theta}\;
+  \arg\min_{\phi}\;
+  \mathcal{L}(\theta,\phi)
+  \\[8pt]
+  &=
+  \arg\max_{\theta}\;
+  \arg\min_{\phi}\;
+  \left[
+  -\sum_i \log D_\phi(x_i)
+  -\sum_j \log\left(1-D_\phi\!\left(G_\theta(z_j)\right)\right)
+  \right].
+  \end{aligned}
+  }
+  \]
 </div>
 
-<p>The original GAN objective can be written as</p>
+That's why it is called <strong>The Minimax Game</strong>.
 
-<div class="formula">
-\[
-\boxed{
-\begin{aligned}
-\min_\theta\max_\phi V(\theta,\phi)
-&=
-\mathbb{E}_{x\sim p_X}
-\left[\log D_\phi(x)\right]\\
-&\quad+
-\mathbb{E}_{z\sim p(z)}
-\left[
-\log\left(1-D_\phi(G_\theta(z))\right)
-\right].
-\end{aligned}}
-\]
-</div>
 
 <div class="callout">
 <strong>Think of GAN training as a game:</strong>
@@ -680,15 +716,7 @@ generator.
 <li>Update the generator according to its adversarial objective.</li>
 </ol>
 
-<div class="callout intuition">
-<strong>Key idea:</strong>
-<p>
-The discriminator and generator are trained against each other. The
-discriminator learns to improve its ability to distinguish real from
-generated samples, while the generator learns to produce increasingly
-realistic samples.
-</p>
-</div>
+
 </section>
 
 <section id="dcgan">
