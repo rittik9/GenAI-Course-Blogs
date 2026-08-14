@@ -1109,7 +1109,7 @@ L(\theta,\phi)
 </p>
 
 <div class="key-result">
-<strong>Step 1 — Write out the JS divergence.</strong>
+<strong>Step 1 — JS divergence.</strong>
 <p>By definition,</p>
 <div class="formula compact">
 \[
@@ -1121,7 +1121,7 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 \]
 </div>
 
-<p><strong>Step 2 — Expand each KL term using its integral form.</strong></p>
+<p><strong>Step 2 - Expanding each KL term using its integral form.</strong></p>
 <p>
 Using \(D_{\mathrm{KL}}(p\|q)=\int p\log(p/q)\), and substituting
 \(q=(p_x+p_\theta)/2\) into each term:
@@ -1136,7 +1136,7 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 \]
 </div>
 
-<p><strong>Step 3 — Split each logarithm using \(\log(ab)=\log a+\log b\).</strong></p>
+<p><strong>Step 3 - Splitting each logarithm using \(\log(ab)=\log a+\log b\).</strong></p>
 <p>
 Write \(\dfrac{2p_x}{p_x+p_\theta}=2\cdot\dfrac{p_x}{p_x+p_\theta}\), and
 similarly for the second term:
@@ -1153,7 +1153,7 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 \]
 </div>
 
-<p><strong>Step 4 — Distribute the integrals.</strong></p>
+<p><strong>Step 4 - Distributing the integrals.</strong></p>
 <div class="formula compact">
 \[
 D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
@@ -1165,7 +1165,7 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 \]
 </div>
 
-<p><strong>Step 5 — Simplify the \(\log 2\) terms.</strong></p>
+<p><strong>Step 5 - Simplifying the \(\log 2\) terms.</strong></p>
 <p>
 Since \(p_x\) and \(p_\theta\) are probability densities,
 \(\int_x p_x\,dx=1\) and \(\int_{\tilde x}p_\theta\,d\tilde x=1\). So each
@@ -1181,7 +1181,7 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 \]
 </div>
 
-<p><strong>Step 6 — Combine the remaining two integrals as one bracketed term.</strong></p>
+<p><strong>Step 6 - Combine the remaining two integrals as one bracketed term.</strong></p>
 <p>Let</p>
 <div class="formula compact">
 \[
@@ -1204,10 +1204,10 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 using \(\log4=2\log2\).
 </p>
 
-<p><strong>Step 7 — Recognize \(B\) as \(-L(\theta,\phi)\).</strong></p>
+<p><strong>Step 7 - Recognize \(B\) as \(-L(\theta,\phi)\).</strong></p>
 <p>
 Compare \(B\) to the boxed expression for \(L(\theta,\phi)\) at the top of
-this section — it is exactly \(B\) with a minus sign in front of each
+this section - it is exactly \(B\) with a minus sign in front of each
 integral:
 </p>
 <div class="formula compact">
@@ -1218,7 +1218,7 @@ B = -L(\theta,\phi).
 \]
 </div>
 
-<p><strong>Step 8 — Substitute back.</strong></p>
+<p><strong>Step 8 - Substituting back.</strong></p>
 <div class="formula compact">
 \[
 D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
@@ -1227,7 +1227,7 @@ D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
 \]
 </div>
 
-<p><strong>Step 9 — Solve for \(L(\theta,\phi)\).</strong></p>
+<p><strong>Step 9 - Solving for \(L(\theta,\phi)\).</strong></p>
 <div class="formula">
 \[
 \boxed{
