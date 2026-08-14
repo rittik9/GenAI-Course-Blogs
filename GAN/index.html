@@ -221,7 +221,7 @@ data distribution.
 </div>
 
 <p>
-We start with a simple, known random distribution and transform samples from
+We start with a simple, known distribution and transform random samples from
 this distribution using a neural network called the <strong>generator</strong>.
 </p>
 
@@ -278,11 +278,17 @@ The discriminator receives a sample and predicts whether it is
 </p>
 </div>
 
-<div class="formula">\[D_\phi(x)\in[0,1].\]</div>
+<div class="formula">
+  \[
+    D_\phi(x)=\operatorname{sigmoid}(f_\phi(x))\in[0,1].
+  \]
+</div>
 
 <p>
-We interpret \(D_\phi(x)\) as the discriminator's estimated probability
-that the input \(x\) is a real sample.
+  Here, \(f_\phi(x)\) is the discriminator's output before the sigmoid
+  activation (the <strong>logit</strong>). The sigmoid function maps this
+  value to \(D_\phi(x)\in[0,1]\), which we interpret as the discriminator's
+  estimated probability that \(x\) is a real sample.
 </p>
 
 <div class="two-column">
@@ -340,10 +346,93 @@ examples \(\tilde{x}_j\) have target label \(0\).
 \]
 </div>
 
+
+<div class="callout intuition">
+  <strong>Why is Binary Cross-Entropy useful here?</strong>
+
+  <p>
+    Recall that the discriminator output is
+    \(D_\phi(x)\in[0,1]\), where values close to \(1\) indicate that the
+    discriminator believes \(x\) is real, while values close to \(0\)
+    indicate that it believes \(x\) is generated.
+  </p>
+
+  <p>
+    The Binary Cross-Entropy loss is useful because it strongly penalizes
+    confident but incorrect predictions. Its two components are
+  </p>
+
+  <div class="formula compact">
+    \[
+      -\log D_\phi(x)
+      \qquad\text{and}\qquad
+      -\log\!\left(1-D_\phi(x)\right).
+    \]
+  </div>
+
+  <p>
+    For a <strong>real sample</strong>, the target label is \(1\), so the
+    relevant loss is
+    \(-\log D_\phi(x)\). This loss approaches \(0\) when
+    \(D_\phi(x)\rightarrow1\), but grows rapidly when the discriminator
+    incorrectly assigns a value close to \(0\).
+  </p>
+
+  <div class="formula compact">
+    \[
+      \boxed{
+      y=1:\quad
+      \mathcal{L}_{\mathrm{BCE}}
+      =-\log D_\phi(x)
+      }
+    \]
+  </div>
+
+  <p>
+    For a <strong>generated sample</strong>, the target label is \(0\), so
+    the relevant loss is
+    \(-\log(1-D_\phi(x))\). This loss approaches \(0\) when
+    \(D_\phi(x)\rightarrow0\), but becomes very large when the discriminator
+    incorrectly assigns a value close to \(1\).
+  </p>
+
+  <div class="formula compact">
+    \[
+      \boxed{
+      y=0:\quad
+      \mathcal{L}_{\mathrm{BCE}}
+      =-\log\!\left(1-D_\phi(x)\right)
+      }
+    \]
+  </div>
+
+  <p>
+    Thus, the logarithmic terms encourage the discriminator to make
+    <strong>confident and correct predictions</strong>, while assigning a
+    large penalty to confident mistakes.
+  </p>
+
+  <!-- Add the BCE curves/graph here -->
+  <div class="placeholder">
+    <strong>BCE intuition graph</strong>
+    <p>
+      Plot \( -\log f \) and \( -\log(1-f) \) for \(f\in(0,1)\).
+    </p>
+  </div>
+</div>
+
 <p>
-In other words, the discriminator tries to assign a high probability to
-real samples and a low probability to generated samples.
+  In other words, the discriminator tries to assign a high probability to
+  real samples and a low probability to generated samples.
 </p>
+
+<div class="callout">
+  <strong>Discriminator's objective:</strong>
+  <p>
+    Correctly classify real samples as real and generated samples as
+    generated.
+  </p>
+</div>
 
 <div class="callout">
 <strong>Discriminator's objective:</strong>
