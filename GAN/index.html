@@ -752,14 +752,70 @@ generator.
 </section>
 
 <section id="dcgan-difficulty">
-<h2>9. Difficulty of Training DCGAN</h2>
-<div class="placeholder">
-<strong>Content to be added</strong>
-<p>
-This section is intentionally left open for the material on the difficulties
-of training DCGANs.
-</p>
-</div>
+  <h2>9. Difficulty of Training DCGAN</h2>
+
+  <p>
+    Although the GAN framework is conceptually simple, training GANs in
+    practice can be surprisingly difficult. Even DCGANs require several
+    architectural and optimization choices to achieve stable training.
+  </p>
+
+  <p>Some of the important practical challenges include:</p>
+
+  <ul>
+    <li>
+      <strong>Sensitive architectural choices:</strong>
+      Stable DCGAN training often depends on carefully chosen convolutional
+      architectures for both the Generator and Discriminator.
+    </li>
+
+    <li>
+      <strong>Upsampling and downsampling:</strong>
+      The Generator needs to progressively transform a low-dimensional noise
+      vector into an image, while the Discriminator performs the reverse
+      process. The particular choice of these operations can significantly
+      affect training stability.
+    </li>
+
+    <li>
+      <strong>Normalization and activation functions:</strong>
+      Techniques such as Batch Normalization and appropriate activation
+      functions can be important for obtaining stable training.
+    </li>
+
+    <li>
+      <strong>Optimization sensitivity:</strong>
+      GANs can be sensitive to optimization settings such as the learning
+      rate, optimizer, and momentum parameters. Choices that work well for
+      ordinary deep-learning models may not necessarily work well for GANs.
+    </li>
+
+    <li>
+      <strong>Mode dropping:</strong>
+      The Generator may learn to produce only a subset of the modes present
+      in the real data distribution. For example, when generating faces, it
+      might produce plausible faces but fail to represent the full diversity
+      of the dataset.
+    </li>
+
+    <li>
+      <strong>Mode collapse:</strong>
+      An extreme form of mode dropping occurs when the Generator produces
+      very similar samples, or even collapses to only a few types of samples.
+      The generated images may look realistic individually, while lacking
+      diversity across the generated set.
+    </li>
+  </ul>
+
+  <div class="callout intuition">
+    <strong>Key takeaway:</strong>
+    <p>
+      A GAN can generate realistic samples without necessarily learning the
+      full diversity of the data distribution. Therefore, <strong>sample
+      quality</strong> and <strong>sample diversity</strong> are both important
+      when evaluating a GAN.
+    </p>
+  </div>
 </section>
 
 <section id="mode-collapse">
