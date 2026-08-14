@@ -593,7 +593,7 @@ output on generated samples.
   \arg\max_\theta
   \left[
   -\sum_j
-  \log D_\phi\!\left(G_\theta(z_j)\right)
+  \log(1 - D_\phi\!\left(G_\theta(z_j))\right)
   \right].
   \]
   </div>
@@ -634,14 +634,14 @@ while the generator tries to fool the discriminator.
   \arg\max_\theta
   \left[
     -\sum_j
-    \log D_\phi\!\left(G_\theta(z_j)\right)
+    \log(1 - D_\phi\!\left(G_\theta(z_j))\right)
   \right]
   \\[4pt]
   &=
   \arg\min_\theta
   \left[
     \sum_j
-    \log D_\phi\!\left(G_\theta(z_j)\right)
+    \log(1 - D_\phi\!\left(G_\theta(z_j))\right)
   \right].
   \end{aligned}
   \]
@@ -700,13 +700,138 @@ GAN training alternates between updating the discriminator and updating the
 generator.
 </p>
 
-<div class="gan-flow">
+<!-- <div class="gan-flow">
   <div class="gan-box"><div class="title">Sample \(z\)</div><div class="label">\(z\sim\mathcal{N}(0,I)\)</div></div>
   <div class="gan-arrow">→</div>
   <div class="gan-box"><div class="title">Generate \(\tilde{x}\)</div><div class="label">\(\tilde{x}=G_\theta(z)\)</div></div>
   <div class="gan-arrow">→</div>
   <div class="gan-box"><div class="title">Discriminate</div><div class="label">Real / Generated</div></div>
-</div>
+</div> -->
+
+<div class="gan-training-diagram" style="margin:30px 0;">
+  <svg viewBox="0 0 980 560" width="100%" role="img"
+       aria-label="GAN training diagram showing generator and discriminator loss flow">
+  
+    <defs>
+      <marker id="arrowhead" markerWidth="8" markerHeight="8"
+              refX="6" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#69778a"/>
+      </marker>
+      <marker id="arrowhead-accent" markerWidth="8" markerHeight="8"
+              refX="6" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)"/>
+      </marker>
+      <marker id="arrowhead-green" markerWidth="8" markerHeight="8"
+              refX="6" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="var(--green)"/>
+      </marker>
+    </defs>
+  
+    <!-- ===== Discriminator loss box (top-right, mirrors generator loss box) ===== -->
+    <rect x="590" y="40" width="350" height="96" rx="10"
+          fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+    <text x="765" y="64" text-anchor="middle" font-size="14.5" font-weight="700" fill="var(--accent)">
+      Discriminator loss, L(&#966;)
+    </text>
+    <text x="765" y="87" text-anchor="middle" font-size="13" fill="#2c3e52" font-style="italic">
+      &#8722;&#931;<tspan baseline-shift="sub" font-size="9">j</tspan> log(1&#8722;D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(x&#771;<tspan baseline-shift="sub" font-size="9">j</tspan>)) &#8722; &#931;<tspan baseline-shift="sub" font-size="9">i</tspan> log D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(x<tspan baseline-shift="sub" font-size="9">i</tspan>)
+    </text>
+    <text x="765" y="108" text-anchor="middle" font-size="11" fill="#606873">
+      Generated x&#771; &#8594; low probability
+    </text>
+    <text x="765" y="123" text-anchor="middle" font-size="11" fill="#606873">
+      Real x &#8594; high probability
+    </text>
+  
+    <!-- ===== Generator loss box (bottom-left, mirrors discriminator loss box) ===== -->
+    <rect x="40" y="424" width="350" height="96" rx="10"
+          fill="var(--green-soft)" stroke="var(--green)" stroke-width="1.5"/>
+    <text x="215" y="448" text-anchor="middle" font-size="14.5" font-weight="700" fill="var(--green)">
+      Generator loss, L(&#952;)
+    </text>
+    <text x="215" y="471" text-anchor="middle" font-size="13" fill="#2c3e52" font-style="italic">
+      &#931;<tspan baseline-shift="sub" font-size="9">j</tspan> log(1&#8722;D<tspan baseline-shift="sub" font-size="9">&#966;</tspan>(G<tspan baseline-shift="sub" font-size="9">&#952;</tspan>(z<tspan baseline-shift="sub" font-size="9">j</tspan>)))
+    </text>
+    <text x="215" y="492" text-anchor="middle" font-size="11" fill="#606873">
+      Generated x&#771;=G&#952;(z) &#8594; should fool
+    </text>
+    <text x="215" y="507" text-anchor="middle" font-size="11" fill="#606873">
+      the discriminator into high probability
+    </text>
+  
+    <!-- ===== Main pipeline (centered vertically at y=290) ===== -->
+  
+    <!-- z_j -->
+    <text x="35" y="266" text-anchor="middle" font-size="17" font-style="italic" fill="#233f5e">z<tspan baseline-shift="sub" font-size="11">j</tspan></text>
+    <text x="35" y="335" text-anchor="middle" font-size="11.5" fill="#606873">&#8195;</text>
+    <line x1="35" y1="280" x2="35" y2="290" stroke="none"/>
+    <text x="35" y="345" text-anchor="middle" font-size="11.5" fill="#606873">Latent</text>
+    <text x="35" y="359" text-anchor="middle" font-size="11.5" fill="#606873">variable</text>
+    <line x1="35" y1="280" x2="35" y2="330" stroke="#9eabbc" stroke-dasharray="3,3"/>
+  
+    <line x1="52" y1="270" x2="95" y2="270" stroke="#69778a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  
+    <!-- Generator box -->
+    <rect x="97" y="230" width="145" height="80" rx="10" fill="#fff" stroke="#9eabbc" stroke-width="1.5"/>
+    <text x="169" y="266" text-anchor="middle" font-size="15" font-weight="650" fill="#344f6b">
+      G<tspan baseline-shift="sub" font-size="10">&#952;</tspan>(z<tspan baseline-shift="sub" font-size="10">j</tspan>)
+    </text>
+    <text x="169" y="326" text-anchor="middle" font-size="12.5" fill="#75828d">Generator</text>
+  
+    <line x1="242" y1="270" x2="308" y2="270" stroke="#69778a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="275" y="250" text-anchor="middle" font-size="11" fill="#606873" font-style="italic">x&#771;<tspan baseline-shift="sub" font-size="8">j</tspan></text>
+  
+    <!-- Real examples, feeding into Data box from above (centered over midpoint) -->
+    <text x="392" y="172" text-anchor="middle" font-size="13" fill="#354f6b" font-weight="600">Real examples</text>
+    <text x="392" y="189" text-anchor="middle" font-size="13" fill="#354f6b" font-style="italic">{x&#7522;}</text>
+    <line x1="392" y1="196" x2="392" y2="228" stroke="#9eabbc" stroke-dasharray="3,3"/>
+  
+    <!-- Data box (centered) -->
+    <rect x="310" y="230" width="145" height="80" rx="10" fill="#fff" stroke="#9eabbc" stroke-width="1.5"/>
+    <text x="382" y="262" text-anchor="middle" font-size="12" fill="#4d5965">Generated &amp; Real</text>
+    <text x="350" y="288" text-anchor="middle" font-size="16" fill="#a8b3c0">&#8593;</text>
+    <text x="368" y="288" text-anchor="middle" font-size="16" fill="#a8b3c0">&#8593;</text>
+    <text x="396" y="288" text-anchor="middle" font-size="16" fill="var(--green)">&#8593;</text>
+    <text x="414" y="288" text-anchor="middle" font-size="16" fill="var(--green)">&#8593;</text>
+    <text x="382" y="326" text-anchor="middle" font-size="12.5" fill="#75828d">Data</text>
+  
+    <line x1="455" y1="270" x2="521" y2="270" stroke="#69778a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  
+    <!-- Discriminator box -->
+    <rect x="523" y="230" width="145" height="80" rx="10" fill="#eef0f3" stroke="#9eabbc" stroke-width="1.5"/>
+    <text x="595" y="266" text-anchor="middle" font-size="14" font-weight="650" fill="#344f6b">
+      D<tspan baseline-shift="sub" font-size="10">&#966;</tspan>(&#8226;)
+    </text>
+    <text x="595" y="326" text-anchor="middle" font-size="12.5" fill="#75828d">Discriminator</text>
+  
+    <line x1="668" y1="270" x2="734" y2="270" stroke="#69778a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  
+    <!-- Output box -->
+    <rect x="736" y="230" width="150" height="80" rx="10" fill="#fff" stroke="#9eabbc" stroke-width="1.5"/>
+    <text x="811" y="258" text-anchor="middle" font-size="12" fill="#4d5965">Generated &amp; Real</text>
+    <path d="M 758 293 Q 811 250 884 250" fill="none" stroke="#9eabbc" stroke-width="2"/>
+    <text x="811" y="326" text-anchor="middle" font-size="12.5" fill="#75828d">Probability is real</text>
+  
+    <!-- Feedback: Output -> Discriminator loss (curved, symmetric radius) -->
+    <path d="M 865 230 Q 865 165 780 136" fill="none" stroke="var(--accent)"
+          stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead-accent)"/>
+  
+    <!-- Feedback: Generator loss -> Generator (curved, symmetric radius) -->
+    <path d="M 215 424 Q 215 360 169 312" fill="none" stroke="var(--green)"
+          stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead-green)"/>
+  
+  </svg>
+  
+  <p class="small" style="text-align:center; margin-top:10px;">
+    <strong>Figure.</strong> GAN training loop. A latent variable
+    \(z_j\sim\mathcal{N}(0,I)\) is passed through the generator to produce
+    \(\tilde x_j=G_\theta(z_j)\). Real and generated samples are passed to the
+    discriminator \(D_\phi\), which outputs the probability each is real.
+    \(\phi\) is updated to correctly separate real from generated samples;
+    \(\theta\) is updated to fool the discriminator.
+  </p>
+  </div>
+
 
 <p>At each training step:</p>
 
@@ -1442,10 +1567,10 @@ D_{\mathrm{JS}}\!\left(p_\theta\,\|\,p_x\right)
 </p>
 </div>
 
+
 <footer>
 <strong>Course note.</strong>
-This lesson is based on the supplied handwritten GAN notes and will be
-refined section by section as additional material is added.
+This lesson is based on the supplied handwritten GAN notes of Rittik Panda.
 </footer>
 
 </main>
