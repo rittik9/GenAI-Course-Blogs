@@ -316,6 +316,95 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Page Layout */
+
+    .page-layout {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: flex-start;
+    }
+
+    /* Left Sidebar */
+
+    .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    padding: 40px 20px 40px 25px;
+    }
+
+    .toc {
+    position: sticky;
+    top: 30px;
+
+    background: #ffffff;
+    border: 1px solid #dce4eb;
+    border-radius: 10px;
+    padding: 18px 18px;
+
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+    }
+
+    .toc strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #344f6b;
+    }
+
+    .toc ul {
+    margin: 0;
+    padding-left: 18px;
+    }
+
+    .toc li {
+    margin: 6px 0;
+    line-height: 1.4;
+    }
+
+    .toc a {
+    color: #557a9e;
+    text-decoration: none;
+    font-size: 0.86rem;
+    }
+
+    .toc a:hover {
+    text-decoration: underline;
+    }
+
+    /* Main Content */
+
+    .container {
+    width: 100%;
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 40px 35px 80px;
+    }
+
+    /* Mobile */
+
+    @media (max-width: 1000px) {
+
+    .page-layout {
+        display: block;
+    }
+
+    .sidebar {
+        width: 100%;
+        padding: 20px 20px 0;
+    }
+
+    .toc {
+        position: relative;
+        top: 0;
+        max-height: none;
+    }
+
+    .container {
+        padding: 30px 20px 60px;
+    }
+    }
   </style>
 </head>
 
@@ -335,23 +424,51 @@
   <!-- TABLE OF CONTENTS -->
   <!-- ========================================================= -->
 
-  <div class="toc">
-    <strong>Contents</strong>
-    <ul>
-      <li><a href="#goal">Goal of Generative Modeling</a></li>
-      <li><a href="#gan-approach">The GAN Approach</a></li>
-      <li><a href="#discriminator">Introducing the Discriminator</a></li>
-      <li><a href="#discriminator-training">Training the Discriminator</a></li>
-      <li><a href="#generator-training">Training the Generator</a></li>
-      <li><a href="#gan-training">GAN Training</a></li>
-      <li><a href="#dcgan">DCGAN</a></li>
-      <li><a href="#dcgan-difficulty">Difficulty of Training DCGAN</a></li>
-      <li><a href="#mode-collapse">Mode Collapse</a></li>
-      <li><a href="#loss-analysis">Analysis of the GAN Loss Function</a></li>
-      <li><a href="#optimal-discriminator">Optimal Discriminator</a></li>
-      <li><a href="#js-divergence">JS Divergence</a></li>
-    </ul>
-  </div>
+  <body>
+
+    <div class="page-layout">
+    
+      <!-- LEFT: Sticky Table of Contents -->
+      <aside class="sidebar">
+        <div class="toc">
+          <strong>Contents</strong>
+    
+          <ul>
+            <li><a href="#goal">Goal of Generative Modeling</a></li>
+            <li><a href="#gan-approach">The GAN Approach</a></li>
+            <li><a href="#discriminator">Introducing the Discriminator</a></li>
+            <li><a href="#discriminator-training">Training the Discriminator</a></li>
+            <li><a href="#generator-training">Training the Generator</a></li>
+            <li><a href="#minimax">The GAN Minimax Game</a></li>
+            <li><a href="#gan-training">GAN Training</a></li>
+            <li><a href="#dcgan">DCGAN</a></li>
+            <li><a href="#dcgan-difficulty">Difficulty of Training DCGAN</a></li>
+            <li><a href="#mode-collapse">Mode Collapse</a></li>
+            <li><a href="#loss-analysis">Analysis of the GAN Loss Function</a></li>
+            <li><a href="#optimal-discriminator">Optimal Discriminator</a></li>
+            <li><a href="#js-divergence">JS Divergence</a></li>
+          </ul>
+        </div>
+      </aside>
+    
+    
+      <!-- RIGHT: Main Blog Content -->
+      <main class="container">
+    
+        <h1>Generative Adversarial Networks (GANs)</h1>
+    
+        <p class="subtitle">
+          Understanding generative modeling through the adversarial learning
+          framework.
+        </p>
+    
+        <!-- All your sections go here -->
+    
+      </main>
+    
+    </div>
+    
+    </body>
 
 
   <!-- ========================================================= -->
