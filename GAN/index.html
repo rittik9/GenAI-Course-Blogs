@@ -1315,7 +1315,62 @@ the behavior we want.
   </div>
 </div>
 
-<h3>10.2 Quality and Coverage</h3>
+<h3 class="section-title">10.2 Quality and Coverage</h3>
+
+<p>
+  The Jensen–Shannon divergence used in the GAN loss can be split into two
+  interpretable terms:
+</p>
+
+<div class="formula">
+\[
+D_{\mathrm{JS}}\!\left(p_x\,\|\,p_\theta\right)
+=
+\underbrace{\frac{1}{2}\int p_x(x)\log\left[\frac{2\,p_x(x)}{p_x(x)+p_\theta(x)}\right]dx}_{\text{quality}}
+\;+\;
+\underbrace{\frac{1}{2}\int p_\theta(\tilde x)\log\left[\frac{2\,p_\theta(\tilde x)}{p_x(\tilde x)+p_\theta(\tilde x)}\right]d\tilde x}_{\text{coverage}}.
+\]
+</div>
+
+<div class="two-column">
+<div class="concept-box">
+<h3>Quality term</h3>
+<p>
+  Weighted by the <strong>real</strong> data density \(p_x(x)\). It stays
+  small only where every real-data region is matched by enough generator
+  density \(p_\theta(x)\). If the generator puts mass somewhere real data
+  barely exists, this term is penalized — it enforces that generated
+  samples \(\tilde x=G_\theta(z)\) look <strong>realistic</strong>.
+</p>
+</div>
+
+<div class="concept-box">
+<h3>Coverage term</h3>
+<p>
+  Weighted by the <strong>generator's</strong> density \(p_\theta(\tilde x)\).
+  It stays small only where every generated region is matched by enough
+  real density \(p_x(\tilde x)\). If the generator ignores a real mode
+  entirely, this term barely notices — it enforces that \(p_\theta\) spans
+  the full <strong>diversity</strong> of \(p_x\).
+</p>
+</div>
+</div>
+
+<div class="callout warning">
+<strong>Why this causes mode dropping:</strong>
+<p>
+  The generator \(G_\theta\) directly controls where it places its
+  probability mass \(p_\theta\), so it feels the quality term's penalty
+  strongly and immediately. But the coverage term is weighted by
+  \(p_\theta\) itself — regions the generator never visits contribute
+  nothing to its own weighting, so real modes it skips go essentially
+  unpunished. The generator therefore has every incentive to be
+  <em>accurate</em> wherever it chooses to generate, but only a weak,
+  indirect incentive to be <em>diverse</em>. The easiest way to minimize
+  loss is to camp on a few safe, realistic modes and ignore the rest —
+  exactly what we observe as <strong>mode dropping</strong>.
+</p>
+</div>
 
 <footer>
 <strong>Course note.</strong>
