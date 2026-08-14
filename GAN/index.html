@@ -967,185 +967,25 @@ generator.
     </p>
 
     <div class="formula">
-        \[
-        \begin{aligned}
-        L(\theta,\phi)
-        &=
-        -\int p_x(x)
-        \log
-        \left[
-        \frac{p_x(x)}
-        {p_x(x)+p_{\theta}(x)}
-        \right]dx
-        \\[6pt]
-        &\quad
-        -
-        \int p_{\theta}(\tilde{x})
-        \log
-        \left[
-        \frac{p_{\theta}(\tilde{x})}
-        {p_x(\tilde{x})+p_{\theta}(\tilde{x})}
-        \right]d\tilde{x}.
-        \end{aligned}
-        \]
-    </div>
-
-    <p>
-        Rewriting the expression by introducing the mixture distribution
-        \[
-        m(x)=\frac{1}{2}
-        \left(p_x(x)+p_{\theta}(x)\right),
-        \]
-        we can express the objective in terms of the
-        Jensen–Shannon divergence.
-    </p>
-
-    <div class="math-block">
-        \[
-        \begin{aligned}
-        L(\theta,\phi)
-        &=
-        -\int p_x(x)
-        \log
-        \left[
-        \frac{p_x(x)}
-        {p_x(x)+p_{\theta}(x)}
-        \right]dx
-        \\[4pt]
-        &\quad
-        -
-        \int p_{\theta}(x)
-        \log
-        \left[
-        \frac{p_{\theta}(x)}
-        {p_x(x)+p_{\theta}(x)}
-        \right]dx.
-        \end{aligned}
-        \]
-    </div>
-
-    <p>
-        Since
-        \[
-        p_x(x)+p_{\theta}(x)=2m(x),
-        \]
-        we can write:
-    </p>
-
-    <div class="math-block">
-        \[
-        \begin{aligned}
-        L(\theta,\phi)
-        &=
-        -\int p_x(x)
-        \log
-        \left[
-        \frac{p_x(x)}
-        {2m(x)}
-        \right]dx
-        -
-        \int p_{\theta}(x)
-        \log
-        \left[
-        \frac{p_{\theta}(x)}
-        {2m(x)}
-        \right]dx.
-        \end{aligned}
-        \]
-    </div>
-
-    <p>
-        Using the definition of the Kullback–Leibler divergence:
-        \[
-        D_{\mathrm{KL}}(P\|Q)
-        =
-        \int P(x)
-        \log\frac{P(x)}{Q(x)}\,dx,
-        \]
-        the objective becomes:
-    </p>
-
-    <div class="math-block">
-        \[
-        \begin{aligned}
-        L(\theta,\phi)
-        &=
-        2\log 2
-        -
-        D_{\mathrm{KL}}
-        \left(
-        p_x\middle\|m
-        \right)
-        -
-        D_{\mathrm{KL}}
-        \left(
-        p_{\theta}\middle\|m
-        \right)
-        \\[6pt]
-        &=
-        2\log 2
-        -
-        2\,D_{\mathrm{JS}}
-        \left(
-        p_x\middle\|p_{\theta}
-        \right).
-        \end{aligned}
-        \]
-    </div>
-
-    <div class="important-box">
-        <p>
-            <strong>Key Result:</strong>
-        </p>
-
-        <p>
-            Therefore, apart from an additive and multiplicative constant,
-            the GAN objective is equivalent to minimizing the
-            Jensen–Shannon divergence between the true data distribution
-            \(p_x(x)\) and the generator distribution \(p_{\theta}(x)\).
-        </p>
-
-        <div class="math-block">
-            \[
-            \boxed{
-            L(\theta,\phi)
-            =
-            2\log 2
-            -
-            2\,D_{\mathrm{JS}}
-            \left(
-            p_x\middle\|p_{\theta}
-            \right)
-            }
-            \]
-        </div>
-    </div>
-
-    <p>
-        Thus, the discriminator and generator game can be understood as
-        a divergence minimization problem: the generator tries to make
-        the synthesized distribution \(p_{\theta}(x)\) as close as
-        possible to the true data distribution \(p_x(x)\).
-    </p>
-
-    <p>
-        Note that the Jensen–Shannon divergence is symmetric:
-    </p>
-
-    <div class="math-block">
-        \[
-        D_{\mathrm{JS}}(P\|Q)
-        =
-        D_{\mathrm{JS}}(Q\|P).
-        \]
-    </div>
-
-    <p>
-        This symmetry means that the divergence does not depend on which
-        distribution is considered the first or second distribution.
-    </p>
-
-</section>
+      \[
+      L(\theta,\phi)
+      =
+      -\int p_x(x)
+      \log
+      \left[
+      \frac{p_x(x)}
+      {p_x(x)+p_{\theta}(x)}
+      \right]dx
+      -
+      \int p_{\theta}(\tilde{x})
+      \log
+      \left[
+      \frac{p_{\theta}(\tilde{x})}
+      {p_x(\tilde{x})+p_{\theta}(\tilde{x})}
+      \right]d\tilde{x}.
+      \]
+  </div>
+    
 
 
 
