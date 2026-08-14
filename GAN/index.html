@@ -985,8 +985,105 @@ generator.
       \right]d\tilde{x}.
       \]
   </div>
-    
+  <p>
+    Disregarding the additive and multiplicative constants, this expression
+    corresponds to the <strong>Jensen–Shannon divergence</strong> between the
+    synthesized distribution \(p_{\theta}(\tilde{x})\) and the true data
+    distribution \(p_x(x)\), or vice versa, since the Jensen–Shannon
+    divergence is symmetric.
+</p>
 
+<div class="callout intuition">
+<strong>A More General View: f-Divergence</strong>
+<p>
+  Given two probability distributions with density functions \(p_x\) and
+  \(p_\theta\), the <strong>f-divergence</strong> between them is defined as
+</p>
+
+<div class="formula compact">
+\[
+D_f\left(p_x\,\|\,p_\theta\right)
+=
+\int_x p_\theta(x)\, f\!\left(\frac{p_x(x)}{p_\theta(x)}\right)dx,
+\]
+</div>
+
+<p>
+where \(f:\mathbb{R}^+\to\mathbb{R}\) is convex, left-semicontinuous, and
+satisfies \(f(1)=0\).
+</p>
+
+<p><strong>Properties of f-divergence:</strong></p>
+<ul>
+<li>\(D_f(\cdot)\geq0\) for any choice of \(f(\cdot)\).</li>
+<li>\(D_f\left(p_x\,\|\,p_\theta\right)=0\) if and only if \(p_x=p_\theta\).</li>
+</ul>
+
+<p><strong>Examples of f-divergence:</strong></p>
+
+<p>
+a) If \(f(u)=u\log u\), we recover the <strong>KL-divergence</strong>:
+</p>
+
+<div class="formula compact">
+\[
+\begin{aligned}
+D_f\left(p_x\,\|\,p_\theta\right)
+&=
+\int_x p_\theta(x)\, f\!\left(\frac{p_x(x)}{p_\theta(x)}\right)dx
+\\
+&=
+\int_x p_\theta(x)
+\left[\frac{p_x(x)}{p_\theta(x)}\log\frac{p_x(x)}{p_\theta(x)}\right]dx
+\\
+&=
+\int_x p_x(x)\log\frac{p_x(x)}{p_\theta(x)}\,dx
+=
+D_{\mathrm{KL}}\left(p_x\,\|\,p_\theta\right).
+\end{aligned}
+\]
+</div>
+
+<p>
+One important thing to note: KL-divergence is <strong>not symmetric</strong>,
+</p>
+
+<div class="formula compact">
+\[
+D_{\mathrm{KL}}\left(p_x\,\|\,p_\theta\right)
+\neq
+D_{\mathrm{KL}}\left(p_\theta\,\|\,p_x\right).
+\]
+</div>
+
+<p>
+b) If \(f(u)=\dfrac{1}{2}\left(u\log u-(u+1)\log\dfrac{u+1}{2}\right)\), we
+recover the <strong>JS-divergence</strong>:
+</p>
+
+<div class="formula compact">
+\[
+D_{\mathrm{JS}}\left(p\,\|\,q\right)
+=
+\frac{1}{2}D_{\mathrm{KL}}\!\left(p\,\middle\|\,\frac{p+q}{2}\right)
++
+\frac{1}{2}D_{\mathrm{KL}}\!\left(q\,\middle\|\,\frac{p+q}{2}\right).
+\]
+</div>
+
+<p>
+Unlike KL-divergence, JS-divergence <strong>is symmetric</strong>:
+</p>
+
+<div class="formula compact">
+\[
+D_{\mathrm{JS}}\left(p\,\|\,q\right)
+=
+D_{\mathrm{JS}}\left(q\,\|\,p\right).
+\]
+</div>
+
+</div>
 
 
 <footer>
