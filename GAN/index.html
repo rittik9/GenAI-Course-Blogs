@@ -181,19 +181,20 @@ x^{(i)}\sim_{\mathrm{iid}}p_X(x).
 <div class="callout intuition">
 <strong>Goal:</strong>
 <p>
-During inference, we would like to generate new samples that are
-indistinguishable from samples drawn from the true data distribution.
+  During inference, we would like to generate new samples that are
+  indistinguishable from samples drawn from the true data distribution,
+  \(x\sim p_X\).
 </p>
-<div class="formula compact">\[x\sim p_X\]</div>
 </div>
 
 <p>
-However, during inference we do not have direct access to the true
-distribution \(p_X\). Therefore, we need to learn a model distribution
-\(p_\theta\) that approximates \(p_X\) as closely as possible.
+  However, during inference we do not have direct access to the true
+  distribution \(p_X\). Therefore, we need to learn a model distribution
+  \(p_\theta\) that approximates \(p_X\) as closely as possible,
+  \(p_\theta\approx p_X\).
 </p>
 
-<div class="formula">\[p_\theta\approx p_X.\]</div>
+
 
 <p>
 Once we have learned such a model, we should be able to generate samples
