@@ -316,6 +316,13 @@ distinguish real samples from generated samples.
 <section id="discriminator-training">
 <h2>4. Training the Discriminator</h2>
 
+<div class="callout intuition">
+  <strong>Discriminator's objective:</strong>
+  <p>
+    Correctly classify real samples as real and generated samples as generated.
+  </p>
+  </div>
+
 <p>
 Since the discriminator performs binary classification, we use the
 <strong>binary cross-entropy loss</strong>.
@@ -382,7 +389,7 @@ examples \(\tilde{x}_j\) have target label \(0\).
     \[
       \boxed{
       y=1:\quad
-      \mathcal{L}_{\mathrm{BCE}}
+      \mathcal{L}_D(\phi)
       =-\log D_\phi(x)
       }
     \]
@@ -400,7 +407,7 @@ examples \(\tilde{x}_j\) have target label \(0\).
     \[
       \boxed{
       y=0:\quad
-      \mathcal{L}_{\mathrm{BCE}}
+      \mathcal{L}_D(\phi)
       =-\log\!\left(1-D_\phi(x)\right)
       }
     \]
@@ -413,19 +420,141 @@ examples \(\tilde{x}_j\) have target label \(0\).
   </p>
 
   <!-- Add the BCE curves/graph here -->
-  <div class="placeholder">
-    <strong>BCE intuition graph</strong>
-    <p>
-      Plot \( -\log f \) and \( -\log(1-f) \) for \(f\in(0,1)\).
-    </p>
+  <div class="bce-graph">
+    <svg
+      viewBox="0 0 760 430"
+      width="100%"
+      role="img"
+      aria-label="Binary cross-entropy curves for -log f and -log(1-f)"
+    >
+  
+      <!-- Plot background -->
+      <rect x="90" y="35" width="600" height="315"
+            fill="#fafbfc" stroke="#dfe4e9" rx="8"/>
+  
+      <!-- Highlight sigmoid output region: 0 < f < 1 -->
+      <rect x="90" y="35" width="600" height="315"
+            fill="#eef3f9" opacity="0.65"/>
+  
+      <!-- Horizontal grid lines -->
+      <line x1="90" y1="350" x2="690" y2="350"
+            stroke="#cfd6de"/>
+      <line x1="90" y1="287" x2="690" y2="287"
+            stroke="#e5e8ec"/>
+      <line x1="90" y1="224" x2="690" y2="224"
+            stroke="#e5e8ec"/>
+      <line x1="90" y1="161" x2="690" y2="161"
+            stroke="#e5e8ec"/>
+      <line x1="90" y1="98" x2="690" y2="98"
+            stroke="#e5e8ec"/>
+      <line x1="90" y1="35" x2="690" y2="35"
+            stroke="#e5e8ec"/>
+  
+      <!-- Axes -->
+      <line x1="90" y1="350" x2="705" y2="350"
+            stroke="#596572" stroke-width="1.5"/>
+      <line x1="90" y1="365" x2="90" y2="25"
+            stroke="#596572" stroke-width="1.5"/>
+  
+      <!-- x-axis ticks: 0 to 1 -->
+      <line x1="90" y1="350" x2="90" y2="357" stroke="#596572"/>
+      <line x1="240" y1="350" x2="240" y2="357" stroke="#596572"/>
+      <line x1="390" y1="350" x2="390" y2="357" stroke="#596572"/>
+      <line x1="540" y1="350" x2="540" y2="357" stroke="#596572"/>
+      <line x1="690" y1="350" x2="690" y2="357" stroke="#596572"/>
+  
+      <!-- x-axis labels -->
+      <text x="90" y="380" text-anchor="middle" font-size="15" fill="#4d5965">0</text>
+      <text x="240" y="380" text-anchor="middle" font-size="15" fill="#4d5965">0.25</text>
+      <text x="390" y="380" text-anchor="middle" font-size="15" fill="#4d5965">0.5</text>
+      <text x="540" y="380" text-anchor="middle" font-size="15" fill="#4d5965">0.75</text>
+      <text x="690" y="380" text-anchor="middle" font-size="15" fill="#4d5965">1</text>
+  
+      <!-- y-axis labels -->
+      <text x="76" y="355" text-anchor="end" font-size="14" fill="#4d5965">0</text>
+      <text x="76" y="292" text-anchor="end" font-size="14" fill="#4d5965">1</text>
+      <text x="76" y="229" text-anchor="end" font-size="14" fill="#4d5965">2</text>
+      <text x="76" y="166" text-anchor="end" font-size="14" fill="#4d5965">3</text>
+      <text x="76" y="103" text-anchor="end" font-size="14" fill="#4d5965">4</text>
+      <text x="76" y="40" text-anchor="end" font-size="14" fill="#4d5965">5</text>
+  
+      <!-- -log(f) -->
+      <path
+        d="
+        M 91 35
+        C 110 55, 125 80, 145 105
+        C 175 140, 205 169, 240 193
+        C 280 220, 325 241, 365 257
+        C 410 275, 455 291, 500 303
+        C 545 315, 590 325, 630 333
+        C 655 337, 675 340, 689 342"
+        fill="none"
+        stroke="#557a9e"
+        stroke-width="3.5"
+        stroke-linecap="round"
+      />
+  
+      <!-- -log(1-f) -->
+      <path
+        d="
+        M 91 342
+        C 110 340, 130 337, 150 333
+        C 190 325, 235 315, 280 303
+        C 325 291, 370 275, 415 257
+        C 455 241, 500 220, 540 193
+        C 575 169, 605 140, 635 105
+        C 655 80, 670 55, 689 35"
+        fill="none"
+        stroke="#6f8f72"
+        stroke-width="3.5"
+        stroke-linecap="round"
+      />
+  
+      <!-- Curve labels -->
+      <text x="500" y="150" text-anchor="middle"
+            font-size="16" font-weight="600" fill="#6f8f72">
+        −log(1−Dφ(x))
+      </text>
+
+      <text x="270" y="150" text-anchor="middle"
+            font-size="16" font-weight="600" fill="#557a9e">
+        −log(Dφ(x))
+      </text>
+        
+      <!-- Axis titles -->
+      <text x="390" y="415" text-anchor="middle"
+            font-size="16" font-weight="600" fill="#37434f">
+        Discriminator output Dφ(x)
+      </text>
+  
+      <text x="20" y="195" text-anchor="middle"
+            transform="rotate(-90 20 195)"
+            font-size="16" font-weight="600" fill="#37434f">
+        Loss
+      </text>
+  
+      <!-- Highlight annotation -->
+      <text x="390" y="60" text-anchor="middle"
+            font-size="14" fill="#557a9e">
+        Discriminator output: 0 &lt;  Dφ(x) &lt; 1
+      </text>
+  
+    </svg>
   </div>
+  
+  <p class="small" style="text-align:center;">
+    The discriminator output \(D_\phi(x)=\operatorname{sigmoid}(f_\phi(x))\)
+    always lies between \(0\) and \(1\). Therefore, we focus only on the
+    \(0\) to \(1\) interval on the x-axis, as this is the entire range of
+    possible discriminator outputs.
+  </p>
 </div>
 
 <p>
-  In other words, the discriminator tries to assign a high probability to
-  real samples and a low probability to generated samples.
+  In other words, the discriminator aims to assign a high probability to
+  real samples and a low probability to generated samples by minimizing
+  \(\mathcal{L}_D(\phi)\).
 </p>
-
 
 </section>
 
