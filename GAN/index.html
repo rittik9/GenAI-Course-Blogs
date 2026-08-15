@@ -1146,7 +1146,7 @@ generator.
         D_{\phi}^{*}(x)
         =
         \frac{p_x(x)}
-        {p_x(x)+p_{\theta}(x)}
+        {p_x(x)+p_{\theta}(\tilde{x})}
         }
         \]
     </div>
@@ -1171,14 +1171,14 @@ generator.
       \log
       \left[
       \frac{p_x(x)}
-      {p_x(x)+p_{\theta}(x)}
+      {p_x(x)+p_{\theta}(\tilde{x})}
       \right]dx
       -
       \int p_{\theta}(\tilde{x})
       \log
       \left[
       \frac{p_{\theta}(\tilde{x})}
-      {p_x(\tilde{x})+p_{\theta}(\tilde{x})}
+      {p_x(x)+p_{\theta}(\tilde{x})}
       \right]d\tilde{x}.
       \]
   </div>
@@ -1295,8 +1295,8 @@ D_{\mathrm{JS}}\left(q\,\|\,p\right).
 \[
 L(\theta,\phi^{*})
 =
--\int_x p_x(x)\log\frac{p_x(x)}{p_x(x)+p_\theta(x)}\,dx
--\int_{\tilde x} p_\theta(\tilde x)\log\frac{p_\theta(\tilde x)}{p_x(\tilde x)+p_\theta(\tilde x)}\,d\tilde x.
+-\int_x p_x(x)\log\frac{p_x(x)}{p_x(x)+p_\theta(\tilde{x})}\,dx
+-\int_{\tilde x} p_\theta(\tilde x)\log\frac{p_\theta(\tilde x)}{p_x(x)+p_\theta(\tilde x)}\,d\tilde x.
 \]
 </div>
 
@@ -1528,22 +1528,28 @@ D_{\mathrm{JS}}\!\left(p_\theta\,\|\,p_x\right)
 <h3>Quality term</h3>
 <p>
   Weighted by the <strong>generated</strong> sample density
-  \(p_\theta(\tilde x)\). This term will be small if, wherever the sample
-  density \(p_\theta(\tilde x)\) is high, the mixture
-  \(\dfrac{p_\theta(\tilde x)+p_x(\tilde x)}{2}\) also has high probability.
-  In other words, it penalizes regions with samples \(\tilde x\) but no real
-  examples \(x\) - it enforces <strong>quality</strong>.
+  \(p_{\theta}(\tilde{x})\), this term primarily focuses on regions where
+  generated samples have high probability. The term remains small when,
+  wherever the generated sample density \(p_{\theta}(\tilde{x})\) is high,
+  the mixture distribution
+  \(\dfrac{p_{\theta}(\tilde{x}) + p_x(x)}{2}\)
+  also assigns high probability. In other words, it penalizes regions where
+  generated samples \(\tilde{x}\) exist but corresponding real examples
+  \(x\) are absent, thereby enforcing <strong>quality</strong>.
 </p>
 </div>
 
 <div class="concept-box">
 <h3>Coverage term</h3>
 <p>
-  Weighted by the <strong>real</strong> data density \(p_x(x)\). This term
-  will be small if, wherever the true density \(p_x(x)\) is high, the
-  mixture \(\dfrac{p_\theta(x)+p_x(x)}{2}\) also has high probability. In
-  other words, it penalizes regions with real examples but no samples - it
-  enforces <strong>coverage</strong>.
+  Weighted by the <strong>real</strong> data density \(p_x(x)\), this term
+  primarily focuses on regions where real samples have high probability.
+  The term remains small when, wherever the true data density \(p_x(x)\) is
+  high, the mixture distribution
+  \(\dfrac{p_{\theta}(\tilde{x}) + p_x(x)}{2}\)
+  also assigns high probability. In other words, it penalizes regions where
+  real examples exist but generated samples are absent, thereby enforcing
+  <strong>coverage</strong>.
 </p>
 </div>
 </div>
