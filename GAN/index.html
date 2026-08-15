@@ -1529,7 +1529,7 @@ D_{\mathrm{JS}}\!\left(p_\theta\,\|\,p_x\right)
 <p>
   Weighted by the <strong>generated</strong> sample density
   \(p_{\theta}(\tilde{x})\), this term primarily focuses on regions where
-  generated samples have high probability. The term remains small when,
+  generated samples have high density. The term remains small when,
   wherever the generated sample density \(p_{\theta}(\tilde{x})\) is high,
   the mixture distribution
   \(\dfrac{p_{\theta}(\tilde{x}) + p_x(x)}{2}\)
@@ -1543,7 +1543,7 @@ D_{\mathrm{JS}}\!\left(p_\theta\,\|\,p_x\right)
 <h3>Coverage term</h3>
 <p>
   Weighted by the <strong>real</strong> data density \(p_x(x)\), this term
-  primarily focuses on regions where real samples have high probability.
+  primarily focuses on regions where real samples have high density.
   The term remains small when, wherever the true data density \(p_x(x)\) is
   high, the mixture distribution
   \(\dfrac{p_{\theta}(\tilde{x}) + p_x(x)}{2}\)
