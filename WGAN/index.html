@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Wasserstein Distance — Generative AI Course</title>
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+:root{
+  --bg:#f7f8fa;--paper:#fff;--text:#20242a;--muted:#606873;
+  --border:#e3e6ea;--accent:#3f5f8f;--accent-soft:#eef3f9;
+  --green-soft:#eef7f2;--green:#2e6b4f;
+  --yellow-soft:#fff8e8;--yellow:#8a6718;
+  --shadow:0 8px 28px rgba(20,30,45,.07);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
+  "Segoe UI",sans-serif;line-height:1.72
+}
+.layout{
+  display:grid;grid-template-columns:250px minmax(0,850px);gap:38px;
+  max-width:1180px;margin:0 auto;padding:42px 24px 80px
+}
+aside{position:sticky;top:24px;align-self:start}
+.course-label{
+  font-size:.78rem;font-weight:750;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:8px
+}
+aside h2{font-size:1.15rem;margin:0 0 18px;line-height:1.3}
+nav a{
+  display:block;padding:7px 10px;margin:2px 0;border-radius:7px;
+  color:var(--muted);text-decoration:none;font-size:.92rem
+}
+nav a:hover{background:var(--accent-soft);color:var(--accent)}
+main{
+  background:var(--paper);border:1px solid var(--border);border-radius:16px;
+  box-shadow:var(--shadow);padding:54px 62px 70px;min-width:0
+}
+header{margin-bottom:38px}
+.eyebrow{
+  display:inline-block;padding:5px 10px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);font-size:.72rem;
+  font-weight:700;margin-bottom:12px
+}
+h1{font-size:2.55rem;line-height:1.15;margin:0 0 10px;letter-spacing:-.025em}
+.subtitle{color:var(--muted);font-size:1rem;margin:0}
+h2{font-size:1.55rem;line-height:1.3;margin-top:48px;margin-bottom:18px;color:#1e3a5b}
+h3{font-size:1.08rem;line-height:1.35;margin-top:32px;margin-bottom:12px;color:#354f6b}
+p{margin:14px 0}
+ul,ol{padding-left:25px}
+li{margin:7px 0}
+strong{color:#233f5e}
+.small{color:var(--muted);font-size:.9rem}
+
+.callout{
+  margin:24px 0;padding:17px 20px;border-left:3px solid #6b8aa6;
+  border-radius:8px;background:#f5f8fb
+}
+.callout.intuition{background:var(--green-soft);border-left-color:var(--green)}
+.callout.warning{background:var(--yellow-soft);border-left-color:var(--yellow)}
+.callout.success{background:#f1f7f3;border-left-color:#719b7d}
+.callout strong{color:#274f3e}
+
+.formula{
+  background:#fafbfc;border:1px solid var(--border);border-radius:10px;
+  padding:18px 14px;margin:22px 0;overflow-x:auto;text-align:center
+}
+.formula.compact{padding:10px 15px;margin:15px 0}
+
+.two-column{
+  display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0
+}
+.concept-box{
+  background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px
+}
+.concept-box h3{margin-top:0;font-size:1.02rem}
+
+.key-result{
+  border:1.5px solid #cfd8e5;background:#fbfcfe;border-radius:12px;
+  padding:20px 22px;margin:26px 0
+}
+.key-result>strong{color:var(--accent)}
+
+footer{
+  margin-top:55px;padding-top:24px;border-top:1px solid var(--border);
+  color:var(--muted);font-size:.88rem
+}
+
+h3.section-title{
+  display:inline-block;
+  padding-bottom:6px;
+  border-bottom:2.5px solid var(--accent);
+  margin-bottom:18px;
+}
+
+table.compare{width:100%;border-collapse:collapse;background:#fbfcfe;border:1.5px solid #cfd8e5;border-radius:12px;overflow:hidden}
+table.compare th{text-align:left;padding:12px 16px;font-size:.92rem;color:#1e3a5b;background:var(--accent-soft);border-bottom:1.5px solid #cfd8e5}
+table.compare td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:.94rem}
+table.compare tr:last-child td{border-bottom:none}
+
+@media(max-width:900px){
+  .layout{display:block;padding:18px 12px 45px}
+  aside{position:static;margin-bottom:16px}
+  nav{display:flex;flex-wrap:wrap;gap:4px}
+  nav a{background:#fff;border:1px solid var(--border)}
+  main{padding:34px 24px 48px}
+}
+@media(max-width:600px){
+  .two-column{grid-template-columns:1fr}
+  h1{font-size:2rem} h2{font-size:1.4rem}
+  main{border-radius:10px}
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<aside>
+  <div class="course-label">Generative AI</div>
+  <h2>The Wasserstein Distance</h2>
+  <nav aria-label="Table of contents">
+    <a href="#why">1. Why We Need a New Distance</a>
+    <a href="#intuition">2. Earth Mover's Intuition</a>
+    <a href="#discrete">3. The Discrete Case</a>
+    <a href="#transport-plan">4. The Transport Plan</a>
+    <a href="#lp">5. It's a Linear Program</a>
+    <a href="#primal-dual">6. Primal vs. Dual Form</a>
+    <a href="#dual">7. The Dual Form, Explicitly</a>
+    <a href="#continuous">8. Extending to Continuous Distributions</a>
+    <a href="#takeaways">9. Key Takeaways</a>
+  </nav>
+</aside>
+
+<main>
+<header>
+  <div class="eyebrow">Generative AI Course · Stability &amp; Distances</div>
+  <h1>The Wasserstein Distance</h1>
+  <p class="subtitle">
+    Why moving mass, instead of comparing densities, gives us a better-behaved
+    distance between distributions.
+  </p>
+</header>
+
+<section id="why">
+<h2>1. Why We Need a New Distance</h2>
+
+<p>
+  When training generative models, we constantly need to measure how far a
+  model distribution \(p_\theta(x)\) is from the true data distribution
+  \(p_X(x)\). Divergences like KL or Jensen–Shannon compare the two
+  densities point by point. That works fine when the distributions overlap,
+  but it behaves badly when they don't — a common situation early in
+  training, or whenever the data lies on a thin, low-dimensional manifold.
+</p>
+
+<div class="callout intuition">
+<strong>The obvious way forward:</strong>
+<p>
+  Choose a distance metric with better properties. This is exactly what the
+  <strong>Wasserstein distance</strong> — also called the
+  <strong>earth mover's distance</strong> — offers.
+</p>
+</div>
+
+<p>
+  Instead of asking "how different are these two densities at each point?",
+  it asks a more physical question: <strong>how much work would it take to
+  reshape one distribution into the other?</strong>
+</p>
+</section>
+
+<section id="intuition">
+<h2>2. Earth Mover's Intuition</h2>
+
+<p>
+  Picture each distribution as a pile of dirt. Turning one pile into the
+  other means shoveling dirt from wherever it currently sits to wherever it
+  needs to end up. Here, <strong>"work"</strong> is defined as the mass
+  moved, multiplied by the distance it's moved over.
+</p>
+
+<p>
+  This immediately sounds more promising than a pointwise density
+  comparison: the Wasserstein distance stays well-defined and smooth even
+  when the two distributions are disjoint — and it decreases smoothly as
+  the distributions become closer to one another. A KL or JS divergence,
+  by contrast, can be flat, infinite, or undefined in exactly this regime.
+</p>
+</section>
+
+<section id="discrete">
+<h2>3. The Discrete Case</h2>
+
+<p>
+  The Wasserstein distance is easiest to understand for discrete
+  distributions. Suppose we have two distributions, \(Pr(x=i)\) and
+  \(q(x=j)\), each defined over \(K\) bins.
+</p>
+
+<p>
+  There is a cost \(C_{ij}\) associated with moving a unit of mass from bin
+  \(i\) in the first distribution to bin \(j\) in the second. The simplest
+  choice — and the one used here — is the absolute difference between the
+  indices, \(|i-j|\).
+</p>
+
+<p>
+  The amounts of mass that get moved between every pair of bins form what's
+  called the <strong>transport plan</strong>, and they're stored in a
+  matrix \(\mathbf{P}\).
+</p>
+
+<div class="formula">
+\[
+D_w\big[Pr(x)\,\|\,q(x)\big]
+=
+\min_{\mathbf{P}}
+\left[
+\sum_{i,j} P_{ij}\cdot|i-j|
+\right],
+\]
+</div>
+
+<p>
+  subject to the constraints that:
+</p>
+
+<div class="formula">
+\[
+\begin{aligned}
+\sum_j P_{ij} &= Pr(x=i) &&\text{initial distribution of } Pr(x)\\
+\sum_i P_{ij} &= q(x=j) &&\text{initial distribution of } q(x)\\
+P_{ij} &\geq 0 &&\text{non-negative masses}
+\end{aligned}
+\]
+</div>
+
+<p>
+  In other words: the Wasserstein distance is the solution to a
+  <strong>constrained minimization problem</strong> that maps the mass of
+  one distribution onto the other, at the lowest possible total cost.
+</p>
+</section>
+
+<section id="transport-plan">
+<h2>4. The Transport Plan, Visually</h2>
+
+<p>
+  It helps to see all the pieces side by side:
+</p>
+
+<div class="two-column">
+<div class="concept-box">
+<h3>The two distributions</h3>
+<p>
+  \(Pr(x=i)\) is a histogram over bins indexed by \(i\); \(q(x=j)\) is a
+  histogram over bins indexed by \(j\). These are the starting and target
+  "piles of dirt."
+</p>
+</div>
+<div class="concept-box">
+<h3>The distance matrix</h3>
+<p>
+  A \(K\times K\) matrix with entries \(|i-j|\), giving the cost of moving
+  one unit of mass from bin \(i\) to bin \(j\). It's smallest near the
+  diagonal, where \(i\approx j\).
+</p>
+</div>
+</div>
+
+<div class="concept-box" style="margin:18px 0;">
+<h3>The transport plan \(\mathbf{P}\)</h3>
+<p>
+  \(\mathbf{P}\) is itself a joint probability distribution over \((i,j)\):
+  each entry \(P_{ij}\) tells you how much mass moves from bin \(i\) to bin
+  \(j\). Every entry must be non-negative; summing a row recovers
+  \(Pr(x=i)\), and summing a column recovers \(q(x=j)\).
+</p>
+</div>
+
+<div class="callout intuition">
+<strong>Why it favors the diagonal:</strong>
+<p>
+  Since the objective minimizes \(\sum_{ij}P_{ij}\cdot|i-j|\), the optimizer
+  naturally prefers to put mass where the cost \(|i-j|\) is small — that is,
+  close to the diagonal, where a bin is mostly transported to itself or a
+  nearby bin. Moving mass far away is only worth it when there's no cheaper
+  option.
+</p>
+</div>
+</section>
+
+<section id="lp">
+<h2>5. It's a Linear Program</h2>
+
+<p>
+  This minimization is inconvenient to work with directly: we'd have to
+  solve for every element \(P_{ij}\) of the transport plan every single
+  time we want to compute the distance. Fortunately, this is a
+  well-studied kind of problem — a <strong>linear programming problem</strong>,
+  in what's called its <em>primal form</em>.
+</p>
+
+<div class="key-result">
+<strong>Why this matters:</strong>
+<p>
+  Linear programs have standard, well-understood algorithms for finding
+  the minimum, and — crucially — every linear program has an equivalent
+  <strong>dual</strong> formulation that reaches the exact same solution
+  from a different angle. That dual form turns out to be far more useful
+  for machine learning.
+</p>
+</div>
+</section>
+
+<section id="primal-dual">
+<h2>6. Primal vs. Dual Form</h2>
+
+<p>
+  Written as a generic linear program, the transport problem looks like
+  this:
+</p>
+
+<table class="compare">
+<thead>
+<tr><th>Primal form</th><th>Dual form</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>
+minimize \(\mathbf{c}^T\mathbf{p}\)<br>
+such that \(\mathbf{A}\mathbf{p}=\mathbf{b}\)<br>
+and \(\mathbf{p}\geq 0\)
+</td>
+<td>
+maximize \(\mathbf{b}^T\mathbf{f}\)<br>
+such that \(\mathbf{A}^T\mathbf{f}\leq\mathbf{c}\)
+</td>
+</tr>
+</tbody>
+</table>
+
+<p style="margin-top:16px;">
+  Here \(\mathbf{p}\) contains the vectorized entries \(P_{ij}\) — the
+  amount of mass moved between every pair of bins. \(\mathbf{c}\) contains
+  the distances. \(\mathbf{A}\mathbf{p}=\mathbf{b}\) encodes the two
+  initial-distribution constraints, and \(\mathbf{p}\geq0\) enforces
+  non-negative mass.
+</p>
+
+<p>
+  The dual problem maximizes over a new variable \(\mathbf{f}\) that acts
+  directly on the initial distributions, subject to constraints that
+  depend on the distances \(\mathbf{c}\) instead of on the transport plan
+  itself.
+</p>
+</section>
+
+<section id="dual">
+<h2>7. The Dual Form, Explicitly</h2>
+
+<p>
+  Applied to our discrete Wasserstein problem, the dual form is:
+</p>
+
+<div class="formula">
+\[
+D_w\big[Pr(x)\,\|\,q(x)\big]
+=
+\max_{\mathbf{f}}
+\left[
+\sum_i Pr(x=i)\,f_i
+-
+\sum_j q(x=j)\,f_j
+\right],
+\]
+</div>
+
+<p>subject to the constraint that:</p>
+
+<div class="formula compact">
+\[
+|f_{i+1}-f_i| < 1.
+\]
+</div>
+
+<p>
+  In other words, we now optimize over a new set of variables
+  \(\{f_i\}\) — one scalar per bin — instead of over the full \(K\times K\)
+  transport plan \(\mathbf{P}\). The only requirement on \(\mathbf{f}\) is
+  that adjacent values cannot change by more than one at a time.
+</p>
+
+<div class="callout intuition">
+<strong>Why the dual form is a win:</strong>
+<p>
+  The primal form asks us to solve for an entire matrix of transport
+  amounts. The dual form asks us to solve for a single function \(f\) over
+  the bins — a much smaller, more tractable object. This is the version
+  that generalizes cleanly to neural networks, as we'll see next.
+</p>
+</div>
+</section>
+
+<section id="continuous">
+<h2>8. Extending to Continuous Distributions</h2>
+
+<p>
+  Translating these results from discrete bins to the continuous,
+  multi-dimensional setting, the primal form (Equation 15.10) becomes:
+</p>
+
+<div class="formula">
+\[
+D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
+=
+\min_{\pi[\bullet,\bullet]}
+\left[
+\iint
+\pi(\mathbf{x}_1,\mathbf{x}_2)\cdot\|\mathbf{x}_1-\mathbf{x}_2\|
+\,d\mathbf{x}_1\,d\mathbf{x}_2
+\right],
+\]
+</div>
+
+<p>
+  subject to constraints analogous to before, where the transport plan
+  \(\pi(\mathbf{x}_1,\mathbf{x}_2)\) now represents the mass moved from
+  continuous position \(\mathbf{x}_1\) to position \(\mathbf{x}_2\).
+</p>
+
+<p>
+  And the dual form (Equation 15.12) becomes:
+</p>
+
+<div class="formula">
+\[
+D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
+=
+\max_{f[\mathbf{x}]}
+\left[
+\int Pr(\mathbf{x})\,f[\mathbf{x}]\,d\mathbf{x}
+-
+\int q(\mathbf{x})\,f[\mathbf{x}]\,d\mathbf{x}
+\right],
+\]
+</div>
+
+<p>
+  subject to the constraint that the <strong>Lipschitz constant</strong> of
+  the function \(f[\mathbf{x}]\) is less than one — that is, the absolute
+  gradient of the function is everywhere less than one.
+</p>
+
+<div class="callout intuition">
+<strong>Why this constraint matters:</strong>
+<p>
+  The discrete condition \(|f_{i+1}-f_i|<1\) was simply a statement that
+  \(f\) can't change too abruptly between neighboring bins. The Lipschitz
+  constraint is the exact continuous analogue of that same idea: \(f\)
+  isn't allowed to change faster than one unit of output per unit of
+  input, in any direction. This is what keeps the dual "critic" function
+  well-behaved instead of blowing up.
+</p>
+</div>
+
+<div class="key-result">
+<strong>Why this is useful for deep learning:</strong>
+<p>
+  Because the dual form is just a maximization over some function
+  \(f[\mathbf{x}]\) subject to a smoothness constraint, we can approximate
+  \(f\) with a neural network and train it with gradient ascent — this is
+  precisely the role played by the "critic" in a Wasserstein GAN, in place
+  of the discriminator's probability output.
+</p>
+</div>
+</section>
+
+<section id="takeaways">
+<h2>9. Key Takeaways</h2>
+
+<ul>
+<li>
+  The Wasserstein distance measures the minimal <strong>work</strong>
+  needed to transform one distribution into another, where work = mass
+  moved \(\times\) distance moved.
+</li>
+<li>
+  In the discrete case, this is a minimization over a
+  <strong>transport plan matrix</strong> \(\mathbf{P}\), constrained to
+  reproduce both original distributions as its row and column sums.
+</li>
+<li>
+  This minimization is a <strong>linear program</strong> in primal form —
+  standard, but expensive to solve directly for every comparison.
+</li>
+<li>
+  Its <strong>dual form</strong> replaces the transport plan with a single
+  function \(f\), constrained so that adjacent values (or, in continuous
+  space, the gradient) can't change too fast — a <strong>Lipschitz</strong>
+  constraint.
+</li>
+<li>
+  This dual form is what makes the Wasserstein distance practical for deep
+  learning: \(f\) can be approximated by a neural network trained via
+  gradient ascent, forming the basis of Wasserstein GANs.
+</li>
+</ul>
+
+<div class="callout success">
+<strong>Big picture:</strong>
+<p>
+  Unlike KL or JS divergence, the Wasserstein distance stays smooth and
+  meaningful even when two distributions don't overlap — exactly the
+  property that makes it attractive for stabilizing generative model
+  training.
+</p>
+</div>
+</section>
+
+<footer>
+<strong>Course note.</strong>
+This lesson is based on Section 15.2.4–15.2.5, "Wasserstein distance for
+discrete and continuous distributions," from Prince, <em>Understanding Deep
+Learning</em> (MIT Press), used under a CC BY-NC-ND license.
+</footer>
+
+</main>
+</div>
+</body>
+</html>
