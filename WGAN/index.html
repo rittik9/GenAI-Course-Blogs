@@ -280,7 +280,7 @@ table.compare tr:last-child td{border-bottom:none}
 </p>
 
 <div style="margin:20px 0;">
-  <img src="images/img1.png" alt="p fixed at 0, q slides from 20 to 25 to 30, none overlapping" style="width:100%; border:1px solid var(--border); border-radius:8px;">
+  <img src="images/img1.webp" alt="p fixed at 0, q slides from 20 to 25 to 30, none overlapping" style="width:100%; border:1px solid var(--border); border-radius:8px;">
 </div>
 
 <p>
@@ -290,14 +290,14 @@ table.compare tr:last-child td{border-bottom:none}
 </p>
 
 <div style="margin:20px 0;">
-  <img src="images/img2.png" alt="KL divergence keeps rising then flattens; JS divergence flattens almost immediately, with a vanishing-gradient region highlighted" style="width:100%; border:1px solid var(--border); border-radius:8px;">
+  <img src="images/img2.webp" alt="KL divergence keeps rising then flattens; JS divergence flattens almost immediately, with a vanishing-gradient region highlighted" style="width:100%; border:1px solid var(--border); border-radius:8px;">
 </div>
 
 <p>
   Look at the region where \(q\) is at 20, 25, and 30 (the dotted lines).
-  Both KL and JS divergence is already flat across that <em>entire</em> stretch — it
+  JS divergence is already flat across that <em>entire</em> stretch — it
   can't tell 20 from 30, because both are "completely disjoint from
-  \(p\)" as far as both KL and JS are concerned. That flat line has zero slope, so
+  \(p\)" as far as JS is concerned. That flat line has zero slope, so
   there's no gradient to push \(q\) back toward \(p\).
 </p>
 
@@ -387,10 +387,92 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 \]
 </div>
 
+<h3>What does \(\min_{\mathbf{P}}\) actually mean?</h3>
+
 <p>
-  In other words: the Wasserstein distance is the solution to a
-  <strong>constrained minimization problem</strong> that maps the mass of
-  one distribution onto the other, at the lowest possible total cost.
+  \(\mathbf{P}\) isn't a single number — it's a whole matrix, with one entry
+  \(P_{ij}\) for every pair of bins \((i,j)\). Each entry answers one
+  question: <em>"how much mass do I move from bin \(i\) to bin \(j\)?"</em>
+</p>
+
+<p>
+  So \(\min_{\mathbf{P}}\) means: search over every possible matrix
+  \(\mathbf{P}\) — every possible way of shuffling mass around — compute
+  the total cost \(\sum_{i,j}P_{ij}\cdot|i-j|\) for that particular
+  shuffling, and pick the matrix that makes the total cost as small as
+  possible.
+</p>
+
+<div class="callout intuition">
+<strong>A delivery-problem analogy:</strong>
+<p>
+  Think of bin \(i\) as a warehouse and bin \(j\) as a store. You need to
+  decide how many boxes go from each warehouse to each store. Many
+  different delivery plans could work — \(\min_{\mathbf{P}}\) is choosing
+  the <em>cheapest</em> one, where cost = (boxes moved) × (distance
+  travelled).
+</p>
+</div>
+
+<h3>Why do the constraints matter?</h3>
+
+<p>
+  Not every matrix \(\mathbf{P}\) is allowed. You can't just move mass
+  however you like — you have to respect where the mass starts and where
+  it needs to end up. That's exactly what the two constraints enforce:
+</p>
+
+<div class="two-column">
+<div class="concept-box">
+<h3>\(\sum_j P_{ij} = Pr(x=i)\)</h3>
+<p>
+  Add up everything <strong>leaving</strong> bin \(i\), across all
+  destinations \(j\). It must equal how much mass bin \(i\) actually had to
+  begin with. You can't move out more than a bin contains, and you can't
+  leave any of it behind — all of it has to go somewhere.
+</p>
+</div>
+<div class="concept-box">
+<h3>\(\sum_i P_{ij} = q(x=j)\)</h3>
+<p>
+  Add up everything <strong>arriving</strong> at bin \(j\), from all
+  sources \(i\). It must equal how much mass bin \(j\) is supposed to end
+  up with.
+</p>
+</div>
+</div>
+
+<p>
+  Without these two constraints, the minimization would be trivial and
+  meaningless — the optimizer could just set \(\mathbf{P}=0\) everywhere
+  and call it a day, since "moving nothing" is obviously the cheapest
+  option. The constraints are what force \(\mathbf{P}\) to represent a
+  <em>valid</em> transformation of \(Pr(x)\) into \(q(x)\), rather than an
+  arbitrary, unconstrained cost.
+</p>
+
+<div class="callout warning">
+<strong>A wording trap: "initial distribution"</strong>
+<p>
+  Both \(Pr(x)\) and \(q(x)\) get labeled "initial distribution" in the
+  constraints — which makes it sound like \(q(x)\) is also a starting
+  point. It isn't. Here, "initial" just means "given to us before we start
+  solving the problem" — both distributions are fixed, known inputs, the
+  same way any optimization has "given" data. It's not describing a
+  timeline of mass moving from A to B. \(Pr(x)\) is the
+  <strong>source</strong> (mass leaves these bins); \(q(x)\) is the
+  <strong>target</strong> (mass arrives in these bins). Both constraints do
+  the same kind of job — pinning \(\mathbf{P}\)'s marginals to a known
+  distribution — one for where mass leaves from, one for where it has to
+  land.
+</p>
+</div>
+
+<p>
+  Put together: \(D_w\) is the cheapest way to reshape the pile \(Pr(x)\)
+  into the pile \(q(x)\), where "reshape" is defined precisely by those
+  row/column constraints, and "cheapest" is exactly what \(\min_\mathbf{P}\)
+  searches for.
 </p>
 </section>
 
@@ -398,35 +480,51 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <h2>4. The Transport Plan, Visually</h2>
 
 <p>
-  It helps to see all the pieces side by side:
+  It helps to see all four pieces of this problem laid out together —
+  the two distributions, the transport plan, and the distance matrix:
 </p>
+
+<div style="margin:24px 0;">
+  <img src="images/transport-plan-figure.png"
+       alt="Figure showing Pr(x=i), q(x=j), the transport plan matrix P, and the distance matrix |i-j|"
+       style="width:100%; border:1px solid var(--border); border-radius:8px;">
+  <p class="small" style="text-align:center;">
+    a) The source distribution \(Pr(x=i)\). b) The target distribution
+    \(q(x=j)\). c) The transport plan \(\mathbf{P}\) — the highlighted
+    square \(P_{54}\) shows how much mass moves from bin \(i=5\) to bin
+    \(j=4\). d) The distance matrix \(|i-j|\), smallest along the diagonal.
+  </p>
+</div>
 
 <div class="two-column">
 <div class="concept-box">
-<h3>The two distributions</h3>
+<h3>a) and b): the two distributions</h3>
 <p>
   \(Pr(x=i)\) is a histogram over bins indexed by \(i\); \(q(x=j)\) is a
   histogram over bins indexed by \(j\). These are the starting and target
-  "piles of dirt."
+  "piles of dirt" — fixed and known before we solve anything.
 </p>
 </div>
 <div class="concept-box">
-<h3>The distance matrix</h3>
+<h3>d): the distance matrix</h3>
 <p>
   A \(K\times K\) matrix with entries \(|i-j|\), giving the cost of moving
   one unit of mass from bin \(i\) to bin \(j\). It's smallest near the
-  diagonal, where \(i\approx j\).
+  diagonal, where \(i\approx j\), and grows the further apart the bins are.
 </p>
 </div>
 </div>
 
 <div class="concept-box" style="margin:18px 0;">
-<h3>The transport plan \(\mathbf{P}\)</h3>
+<h3>c): the transport plan \(\mathbf{P}\)</h3>
 <p>
-  \(\mathbf{P}\) is itself a joint probability distribution over \((i,j)\):
-  each entry \(P_{ij}\) tells you how much mass moves from bin \(i\) to bin
-  \(j\). Every entry must be non-negative; summing a row recovers
-  \(Pr(x=i)\), and summing a column recovers \(q(x=j)\).
+  \(\mathbf{P}\) is itself a joint probability distribution over
+  \((i,j)\): each entry \(P_{ij}\) tells you how much mass moves from bin
+  \(i\) to bin \(j\). For example, the highlighted entry \(P_{54}\) is the
+  amount of mass moved from bin \(i=5\) to bin \(j=4\). Every entry must be
+  non-negative; summing across a row recovers \(Pr(x=i)\), and summing down
+  a column recovers \(q(x=j)\) — exactly the two constraints from the
+  previous section.
 </p>
 </div>
 
@@ -437,7 +535,8 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
   naturally prefers to put mass where the cost \(|i-j|\) is small — that is,
   close to the diagonal, where a bin is mostly transported to itself or a
   nearby bin. Moving mass far away is only worth it when there's no cheaper
-  option.
+  option. That's exactly the pattern visible in panel c) above: the bright,
+  high-mass entries of \(\mathbf{P}\) hug the diagonal.
 </p>
 </div>
 </section>
