@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Wasserstein Distance — Generative AI Course</title>
+<title>The Wasserstein Distance- Generative AI Course</title>
 
 <script>
 window.MathJax = {
@@ -157,7 +157,7 @@ table.compare tr:last-child td{border-bottom:none}
 <h2>1. The Vanishing Gradient Problem</h2>
 
 <p>
-  A regular GAN's discriminator is a binary classifier — it squashes its
+  A regular GAN's discriminator is a binary classifier- it squashes its
   output through a sigmoid to get a "probability that this sample is real."
   That sigmoid is exactly where a subtle problem starts.
 </p>
@@ -165,8 +165,8 @@ table.compare tr:last-child td{border-bottom:none}
 <div class="callout warning">
 <strong>The problem with the sigmoid:</strong>
 <p>
-  A sigmoid curve is only steep in the middle. Out at the flat ends — close
-  to 0 or close to 1 — it barely changes at all, no matter how much its
+  A sigmoid curve is only steep in the middle. Out at the flat ends- close
+  to 0 or close to 1- it barely changes at all, no matter how much its
   input changes. If the discriminator has gotten good at its job, it pushes
   every fake sample's score down near 0 and every real sample's score up
   near 1. Both groups end up sitting on the <strong>flat</strong> parts of
@@ -244,7 +244,7 @@ table.compare tr:last-child td{border-bottom:none}
   </svg>
   <p class="small" style="text-align:center;">
     Both groups of samples sit on the flat ends of the sigmoid. Nudging a
-    fake sample slightly barely moves its score — the slope right there is
+    fake sample slightly barely moves its score- the slope right there is
     nearly zero.
   </p>
 </div>
@@ -253,7 +253,7 @@ table.compare tr:last-child td{border-bottom:none}
   That slope is exactly what the generator relies on to learn. Its only
   feedback is: "if I change my output a little, does the discriminator's
   score change?" When every sample lands on a flat stretch of the sigmoid,
-  the answer is "barely at all" — so the gradient flowing back to the
+  the answer is "barely at all"- so the gradient flowing back to the
   generator is tiny, and its weights barely update. This is the
   <strong>vanishing gradient</strong> problem.
 </p>
@@ -262,11 +262,11 @@ table.compare tr:last-child td{border-bottom:none}
   You might guess this only happens when the discriminator is "too good."
   But there's a deeper reason it happens almost inevitably. Generated
   samples all come from passing noise \(z\) through the generator, so they
-  live on a comparatively low-dimensional slice of the full data space —
+  live on a comparatively low-dimensional slice of the full data space-
   and real data, shaped by whatever physical process created it, often
   lives on its own low-dimensional slice too. Those two slices can easily
   end up barely touching, or not touching at all. When that happens, the
-  discriminator doesn't just get good — it gets <em>perfect</em>, and stays
+  discriminator doesn't just get good- it gets <em>perfect</em>, and stays
   perfect, no matter how the generator nudges its output. There's simply no
   gradual "getting closer" that the discriminator can register.
 </p>
@@ -275,7 +275,7 @@ table.compare tr:last-child td{border-bottom:none}
 
 <p>
   Take a fixed distribution \(p\) (blue, centered at 0) and a moving
-  distribution \(q\) that we slide further and further away — centered at
+  distribution \(q\) that we slide further and further away- centered at
   20, then 25, then 30. None of these ever overlap with \(p\):
 </p>
 
@@ -295,7 +295,7 @@ table.compare tr:last-child td{border-bottom:none}
 
 <p>
   Look at the region where \(q\) is at 20, 25, and 30 (the dotted lines).
-  JS divergence is already flat across that <em>entire</em> stretch — it
+  JS divergence is already flat across that <em>entire</em> stretch- it
   can't tell 20 from 30, because both are "completely disjoint from
   \(p\)" as far as JS is concerned. That flat line has zero slope, so
   there's no gradient to push \(q\) back toward \(p\).
@@ -305,7 +305,7 @@ table.compare tr:last-child td{border-bottom:none}
 <strong>So the real culprit isn't just the sigmoid:</strong>
 <p>
   Sigmoid saturation is a symptom. The deeper issue is what the GAN loss is
-  secretly measuring — KL or JS divergence between two distributions. As
+  secretly measuring- KL or JS divergence between two distributions. As
   the example above shows, once two distributions are disjoint, these
   divergences stop responding to how far apart they actually are. The
   gradient dies regardless of the discriminator's exact architecture.
@@ -314,7 +314,7 @@ table.compare tr:last-child td{border-bottom:none}
 
 <p>
   That's the motivation for looking for a <strong>better distance
-  metric</strong> — one that stays smooth and informative even when the two
+  metric</strong>- one that stays smooth and informative even when the two
   distributions don't overlap, and that keeps shrinking as the generator
   gets closer to the real data. That's exactly what the
   <strong>Wasserstein distance</strong> gives us.
@@ -334,7 +334,7 @@ table.compare tr:last-child td{border-bottom:none}
 <p>
   This immediately sounds more promising than a pointwise density
   comparison: the Wasserstein distance stays well-defined and smooth even
-  when the two distributions are disjoint — and it decreases smoothly as
+  when the two distributions are disjoint- and it decreases smoothly as
   the distributions become closer to one another. A KL or JS divergence,
   by contrast, can be flat, infinite, or undefined in exactly this regime.
 </p>
@@ -352,7 +352,7 @@ table.compare tr:last-child td{border-bottom:none}
 <p>
   There is a cost \(C_{ij}\) associated with moving a unit of mass from bin
   \(i\) in the first distribution to bin \(j\) in the second. The simplest
-  choice — and the one used here — is the absolute difference between the
+  choice- and the one used here- is the absolute difference between the
   indices, \(|i-j|\).
 </p>
 
@@ -390,14 +390,14 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <h3>What does \(\min_{\mathbf{P}}\) actually mean?</h3>
 
 <p>
-  \(\mathbf{P}\) isn't a single number — it's a whole matrix, with one entry
+  \(\mathbf{P}\) isn't a single number- it's a whole matrix, with one entry
   \(P_{ij}\) for every pair of bins \((i,j)\). Each entry answers one
   question: <em>"how much mass do I move from bin \(i\) to bin \(j\)?"</em>
 </p>
 
 <p>
   So \(\min_{\mathbf{P}}\) means: search over every possible matrix
-  \(\mathbf{P}\) — every possible way of shuffling mass around — compute
+  \(\mathbf{P}\)- every possible way of shuffling mass around- compute
   the total cost \(\sum_{i,j}P_{ij}\cdot|i-j|\) for that particular
   shuffling, and pick the matrix that makes the total cost as small as
   possible.
@@ -408,7 +408,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <p>
   Think of bin \(i\) as a warehouse and bin \(j\) as a store. You need to
   decide how many boxes go from each warehouse to each store. Many
-  different delivery plans could work — \(\min_{\mathbf{P}}\) is choosing
+  different delivery plans could work- \(\min_{\mathbf{P}}\) is choosing
   the <em>cheapest</em> one, where cost = (boxes moved) × (distance
   travelled).
 </p>
@@ -418,7 +418,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 
 <p>
   Not every matrix \(\mathbf{P}\) is allowed. You can't just move mass
-  however you like — you have to respect where the mass starts and where
+  however you like- you have to respect where the mass starts and where
   it needs to end up. That's exactly what the two constraints enforce:
 </p>
 
@@ -429,7 +429,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
   Add up everything <strong>leaving</strong> bin \(i\), across all
   destinations \(j\). It must equal how much mass bin \(i\) actually had to
   begin with. You can't move out more than a bin contains, and you can't
-  leave any of it behind — all of it has to go somewhere.
+  leave any of it behind- all of it has to go somewhere.
 </p>
 </div>
 <div class="concept-box">
@@ -444,7 +444,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 
 <p>
   Without these two constraints, the minimization would be trivial and
-  meaningless — the optimizer could just set \(\mathbf{P}=0\) everywhere
+  meaningless- the optimizer could just set \(\mathbf{P}=0\) everywhere
   and call it a day, since "moving nothing" is obviously the cheapest
   option. The constraints are what force \(\mathbf{P}\) to represent a
   <em>valid</em> transformation of \(Pr(x)\) into \(q(x)\), rather than an
@@ -455,15 +455,15 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <strong>A wording trap: "initial distribution"</strong>
 <p>
   Both \(Pr(x)\) and \(q(x)\) get labeled "initial distribution" in the
-  constraints — which makes it sound like \(q(x)\) is also a starting
+  constraints- which makes it sound like \(q(x)\) is also a starting
   point. It isn't. Here, "initial" just means "given to us before we start
-  solving the problem" — both distributions are fixed, known inputs, the
+  solving the problem"- both distributions are fixed, known inputs, the
   same way any optimization has "given" data. It's not describing a
   timeline of mass moving from A to B. \(Pr(x)\) is the
   <strong>source</strong> (mass leaves these bins); \(q(x)\) is the
   <strong>target</strong> (mass arrives in these bins). Both constraints do
-  the same kind of job — pinning \(\mathbf{P}\)'s marginals to a known
-  distribution — one for where mass leaves from, one for where it has to
+  the same kind of job- pinning \(\mathbf{P}\)'s marginals to a known
+  distribution- one for where mass leaves from, one for where it has to
   land.
 </p>
 </div>
@@ -480,7 +480,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <h2>4. The Transport Plan, Visually</h2>
 
 <p>
-  It helps to see all four pieces of this problem laid out together —
+  It helps to see all four pieces of this problem laid out together-
   the two distributions, the transport plan, and the distance matrix:
 </p>
 
@@ -490,7 +490,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
        style="width:100%; border:1px solid var(--border); border-radius:8px;">
   <p class="small" style="text-align:center;">
     a) The source distribution \(Pr(x=i)\). b) The target distribution
-    \(q(x=j)\). c) The transport plan \(\mathbf{P}\) — the highlighted
+    \(q(x=j)\). c) The transport plan \(\mathbf{P}\)- the highlighted
     square \(P_{54}\) shows how much mass moves from bin \(i=5\) to bin
     \(j=4\). d) The distance matrix \(|i-j|\), smallest along the diagonal.
   </p>
@@ -502,7 +502,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <p>
   \(Pr(x=i)\) is a histogram over bins indexed by \(i\); \(q(x=j)\) is a
   histogram over bins indexed by \(j\). These are the starting and target
-  "piles of dirt" — fixed and known before we solve anything.
+  "piles of dirt"- fixed and known before we solve anything.
 </p>
 </div>
 <div class="concept-box">
@@ -523,7 +523,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
   \(i\) to bin \(j\). For example, the highlighted entry \(P_{54}\) is the
   amount of mass moved from bin \(i=5\) to bin \(j=4\). Every entry must be
   non-negative; summing across a row recovers \(Pr(x=i)\), and summing down
-  a column recovers \(q(x=j)\) — exactly the two constraints from the
+  a column recovers \(q(x=j)\)- exactly the two constraints from the
   previous section.
 </p>
 </div>
@@ -532,7 +532,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <strong>Why it favors the diagonal:</strong>
 <p>
   Since the objective minimizes \(\sum_{ij}P_{ij}\cdot|i-j|\), the optimizer
-  naturally prefers to put mass where the cost \(|i-j|\) is small — that is,
+  naturally prefers to put mass where the cost \(|i-j|\) is small- that is,
   close to the diagonal, where a bin is mostly transported to itself or a
   nearby bin. Moving mass far away is only worth it when there's no cheaper
   option. That's exactly the pattern visible in panel c) above: the bright,
@@ -548,7 +548,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
   This minimization is inconvenient to work with directly: we'd have to
   solve for every element \(P_{ij}\) of the transport plan every single
   time we want to compute the distance. Fortunately, this is a
-  well-studied kind of problem — a <strong>linear programming problem</strong>,
+  well-studied kind of problem- a <strong>linear programming problem</strong>,
   in what's called its <em>primal form</em>.
 </p>
 
@@ -556,7 +556,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <strong>Why this matters:</strong>
 <p>
   Linear programs have standard, well-understood algorithms for finding
-  the minimum, and — crucially — every linear program has an equivalent
+  the minimum, and- crucially- every linear program has an equivalent
   <strong>dual</strong> formulation that reaches the exact same solution
   from a different angle. That dual form turns out to be far more useful
   for machine learning.
@@ -592,7 +592,7 @@ such that \(\mathbf{A}^T\mathbf{f}\leq\mathbf{c}\)
 </table>
 
 <p style="margin-top:16px;">
-  Here \(\mathbf{p}\) contains the vectorized entries \(P_{ij}\) — the
+  Here \(\mathbf{p}\) contains the vectorized entries \(P_{ij}\)- the
   amount of mass moved between every pair of bins. \(\mathbf{c}\) contains
   the distances. \(\mathbf{A}\mathbf{p}=\mathbf{b}\) encodes the two
   initial-distribution constraints, and \(\mathbf{p}\geq0\) enforces
@@ -637,7 +637,7 @@ D_w\big[Pr(x)\,\|\,q(x)\big]
 
 <p>
   In other words, we now optimize over a new set of variables
-  \(\{f_i\}\) — one scalar per bin — instead of over the full \(K\times K\)
+  \(\{f_i\}\)- one scalar per bin- instead of over the full \(K\times K\)
   transport plan \(\mathbf{P}\). The only requirement on \(\mathbf{f}\) is
   that adjacent values cannot change by more than one at a time.
 </p>
@@ -647,7 +647,7 @@ D_w\big[Pr(x)\,\|\,q(x)\big]
 <p>
   The primal form asks us to solve for an entire matrix of transport
   amounts. The dual form asks us to solve for a single function \(f\) over
-  the bins — a much smaller, more tractable object. This is the version
+  the bins- a much smaller, more tractable object. This is the version
   that generalizes cleanly to neural networks, as we'll see next.
 </p>
 </div>
@@ -699,7 +699,7 @@ D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
 
 <p>
   subject to the constraint that the <strong>Lipschitz constant</strong> of
-  the function \(f[\mathbf{x}]\) is less than one — that is, the absolute
+  the function \(f[\mathbf{x}]\) is less than one- that is, the absolute
   gradient of the function is everywhere less than one.
 </p>
 
@@ -720,7 +720,7 @@ D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
 <p>
   Because the dual form is just a maximization over some function
   \(f[\mathbf{x}]\) subject to a smoothness constraint, we can approximate
-  \(f\) with a neural network and train it with gradient ascent — this is
+  \(f\) with a neural network and train it with gradient ascent- this is
   precisely the role played by the "critic" in a Wasserstein GAN, in place
   of the discriminator's probability output.
 </p>
@@ -742,13 +742,13 @@ D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
   reproduce both original distributions as its row and column sums.
 </li>
 <li>
-  This minimization is a <strong>linear program</strong> in primal form —
+  This minimization is a <strong>linear program</strong> in primal form-
   standard, but expensive to solve directly for every comparison.
 </li>
 <li>
   Its <strong>dual form</strong> replaces the transport plan with a single
   function \(f\), constrained so that adjacent values (or, in continuous
-  space, the gradient) can't change too fast — a <strong>Lipschitz</strong>
+  space, the gradient) can't change too fast- a <strong>Lipschitz</strong>
   constraint.
 </li>
 <li>
@@ -762,7 +762,7 @@ D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
 <strong>Big picture:</strong>
 <p>
   Unlike KL or JS divergence, the Wasserstein distance stays smooth and
-  meaningful even when two distributions don't overlap — exactly the
+  meaningful even when two distributions don't overlap- exactly the
   property that makes it attractive for stabilizing generative model
   training.
 </p>
