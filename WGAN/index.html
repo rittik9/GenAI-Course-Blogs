@@ -131,7 +131,7 @@ table.compare tr:last-child td{border-bottom:none}
   <div class="course-label">Generative AI</div>
   <h2>The Wasserstein Distance</h2>
   <nav aria-label="Table of contents">
-    <a href="#why">1. Why We Need a New Distance</a>
+    <a href="#vanishing">1. The Vanishing Gradient Problem</a>
     <a href="#intuition">2. Earth Mover's Intuition</a>
     <a href="#discrete">3. The Discrete Case</a>
     <a href="#transport-plan">4. The Transport Plan</a>
@@ -153,31 +153,171 @@ table.compare tr:last-child td{border-bottom:none}
   </p>
 </header>
 
-<section id="why">
-<h2>1. Why We Need a New Distance</h2>
+<section id="vanishing">
+<h2>1. The Vanishing Gradient Problem</h2>
 
 <p>
-  When training generative models, we constantly need to measure how far a
-  model distribution \(p_\theta(x)\) is from the true data distribution
-  \(p_X(x)\). Divergences like KL or Jensen–Shannon compare the two
-  densities point by point. That works fine when the distributions overlap,
-  but it behaves badly when they don't — a common situation early in
-  training, or whenever the data lies on a thin, low-dimensional manifold.
+  A regular GAN's discriminator is a binary classifier — it squashes its
+  output through a sigmoid to get a "probability that this sample is real."
+  That sigmoid is exactly where a subtle problem starts.
 </p>
 
-<div class="callout intuition">
-<strong>The obvious way forward:</strong>
+<div class="callout warning">
+<strong>The problem with the sigmoid:</strong>
 <p>
-  Choose a distance metric with better properties. This is exactly what the
-  <strong>Wasserstein distance</strong> — also called the
-  <strong>earth mover's distance</strong> — offers.
+  A sigmoid curve is only steep in the middle. Out at the flat ends — close
+  to 0 or close to 1 — it barely changes at all, no matter how much its
+  input changes. If the discriminator has gotten good at its job, it pushes
+  every fake sample's score down near 0 and every real sample's score up
+  near 1. Both groups end up sitting on the <strong>flat</strong> parts of
+  the curve.
 </p>
 </div>
 
 <p>
-  Instead of asking "how different are these two densities at each point?",
-  it asks a more physical question: <strong>how much work would it take to
-  reshape one distribution into the other?</strong>
+  Here's the diagram from the textbook that shows this happening. The
+  orange arrows are generated (fake) samples, the cyan arrows are real
+  samples, and the gray S-curve is the discriminator's sigmoid output:
+</p>
+
+<div style="margin:26px 0;">
+  <svg viewBox="0 0 640 340" width="100%" role="img"
+       aria-label="Sigmoid discriminator output with synthesized and real samples clustered on the flat regions">
+    <rect x="60" y="20" width="540" height="260" fill="#fafbfc" stroke="#dfe4e9" rx="8"/>
+
+    <!-- axes -->
+    <line x1="60" y1="280" x2="600" y2="280" stroke="#596572" stroke-width="1.5"/>
+    <line x1="60" y1="280" x2="60" y2="20" stroke="#596572" stroke-width="1.5"/>
+
+    <!-- y labels -->
+    <text x="48" y="284" text-anchor="end" font-size="13" fill="#4d5965">0.0</text>
+    <text x="48" y="26" text-anchor="end" font-size="13" fill="#4d5965">1.0</text>
+    <text x="20" y="150" text-anchor="middle" font-size="14" font-weight="600" fill="#37434f"
+          transform="rotate(-90 20 150)">Pr(real)</text>
+
+    <!-- x labels -->
+    <text x="60" y="300" text-anchor="middle" font-size="13" fill="#4d5965">0.0</text>
+    <text x="600" y="300" font-size="13" fill="#4d5965">1.0</text>
+    <text x="330" y="320" text-anchor="middle" font-size="14" font-weight="600" fill="#37434f">Data, x</text>
+
+    <!-- sigmoid curve, steep in the middle -->
+    <path d="M 61 279 C 220 279, 270 279, 300 240
+             C 320 190, 340 110, 360 60
+             C 390 25, 440 21, 599 21"
+          fill="none" stroke="#9aa4af" stroke-width="3"/>
+
+    <!-- synthesized arrows (orange), clustered left, flat region -->
+    <text x="140" y="170" text-anchor="middle" font-size="13" fill="#c07a3a" font-weight="600">Synthesized</text>
+    <g stroke="#d98f4e" stroke-width="3">
+      <line x1="105" y1="260" x2="105" y2="200"/>
+      <line x1="120" y1="260" x2="120" y2="200"/>
+      <line x1="135" y1="260" x2="135" y2="200"/>
+      <line x1="150" y1="260" x2="150" y2="200"/>
+      <line x1="165" y1="260" x2="165" y2="200"/>
+      <line x1="180" y1="260" x2="180" y2="200"/>
+    </g>
+    <g fill="#d98f4e">
+      <path d="M105,200 l-5,10 l10,0 z"/>
+      <path d="M120,200 l-5,10 l10,0 z"/>
+      <path d="M135,200 l-5,10 l10,0 z"/>
+      <path d="M150,200 l-5,10 l10,0 z"/>
+      <path d="M165,200 l-5,10 l10,0 z"/>
+      <path d="M180,200 l-5,10 l10,0 z"/>
+    </g>
+
+    <!-- real arrows (cyan), clustered right, flat region -->
+    <text x="480" y="170" text-anchor="middle" font-size="13" fill="#3f9c93" font-weight="600">Real</text>
+    <g stroke="#5fb5ac" stroke-width="3">
+      <line x1="440" y1="260" x2="440" y2="200"/>
+      <line x1="460" y1="260" x2="460" y2="200"/>
+      <line x1="480" y1="260" x2="480" y2="200"/>
+      <line x1="500" y1="260" x2="500" y2="200"/>
+      <line x1="520" y1="260" x2="520" y2="200"/>
+    </g>
+    <g fill="#5fb5ac">
+      <path d="M440,200 l-5,10 l10,0 z"/>
+      <path d="M460,200 l-5,10 l10,0 z"/>
+      <path d="M480,200 l-5,10 l10,0 z"/>
+      <path d="M500,200 l-5,10 l10,0 z"/>
+      <path d="M520,200 l-5,10 l10,0 z"/>
+    </g>
+  </svg>
+  <p class="small" style="text-align:center;">
+    Both groups of samples sit on the flat ends of the sigmoid. Nudging a
+    fake sample slightly barely moves its score — the slope right there is
+    nearly zero.
+  </p>
+</div>
+
+<p>
+  That slope is exactly what the generator relies on to learn. Its only
+  feedback is: "if I change my output a little, does the discriminator's
+  score change?" When every sample lands on a flat stretch of the sigmoid,
+  the answer is "barely at all" — so the gradient flowing back to the
+  generator is tiny, and its weights barely update. This is the
+  <strong>vanishing gradient</strong> problem.
+</p>
+
+<p>
+  You might guess this only happens when the discriminator is "too good."
+  But there's a deeper reason it happens almost inevitably. Generated
+  samples all come from passing noise \(z\) through the generator, so they
+  live on a comparatively low-dimensional slice of the full data space —
+  and real data, shaped by whatever physical process created it, often
+  lives on its own low-dimensional slice too. Those two slices can easily
+  end up barely touching, or not touching at all. When that happens, the
+  discriminator doesn't just get good — it gets <em>perfect</em>, and stays
+  perfect, no matter how the generator nudges its output. There's simply no
+  gradual "getting closer" that the discriminator can register.
+</p>
+
+<h3>A quick example</h3>
+
+<p>
+  Take a fixed distribution \(p\) (blue, centered at 0) and a moving
+  distribution \(q\) that we slide further and further away — centered at
+  20, then 25, then 30. None of these ever overlap with \(p\):
+</p>
+
+<div style="margin:20px 0;">
+  <img src="images/img1.png" alt="p fixed at 0, q slides from 20 to 25 to 30, none overlapping" style="width:100%; border:1px solid var(--border); border-radius:8px;">
+</div>
+
+<p>
+  Now plot each divergence as \(q\) slides from 20 to 30. KL divergence
+  keeps climbing before flattening out; JS divergence flattens out almost
+  immediately:
+</p>
+
+<div style="margin:20px 0;">
+  <img src="images/img2.png" alt="KL divergence keeps rising then flattens; JS divergence flattens almost immediately, with a vanishing-gradient region highlighted" style="width:100%; border:1px solid var(--border); border-radius:8px;">
+</div>
+
+<p>
+  Look at the region where \(q\) is at 20, 25, and 30 (the dotted lines).
+  Both KL and JS divergence is already flat across that <em>entire</em> stretch — it
+  can't tell 20 from 30, because both are "completely disjoint from
+  \(p\)" as far as both KL and JS are concerned. That flat line has zero slope, so
+  there's no gradient to push \(q\) back toward \(p\).
+</p>
+
+<div class="callout intuition">
+<strong>So the real culprit isn't just the sigmoid:</strong>
+<p>
+  Sigmoid saturation is a symptom. The deeper issue is what the GAN loss is
+  secretly measuring — KL or JS divergence between two distributions. As
+  the example above shows, once two distributions are disjoint, these
+  divergences stop responding to how far apart they actually are. The
+  gradient dies regardless of the discriminator's exact architecture.
+</p>
+</div>
+
+<p>
+  That's the motivation for looking for a <strong>better distance
+  metric</strong> — one that stays smooth and informative even when the two
+  distributions don't overlap, and that keeps shrinking as the generator
+  gets closer to the real data. That's exactly what the
+  <strong>Wasserstein distance</strong> gives us.
 </p>
 </section>
 
