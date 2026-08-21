@@ -172,7 +172,7 @@ table.compare tr:last-child td{border-bottom:none}
 </div>
 
 <p>
-  Here's the diagram from the textbook that shows this happening. The
+  Here's a diagram that shows this happening. The
   orange arrows are generated (fake) samples, the cyan arrows are real
   samples, and the gray S-curve is the discriminator's sigmoid output:
 </p>
@@ -241,7 +241,7 @@ table.compare tr:last-child td{border-bottom:none}
   </svg>
   <p class="small" style="text-align:center;">
     Both groups of samples sit on the flat ends of the sigmoid. Nudging a
-    fake sample slightly barely moves its score- the slope right there is
+    fake sample slightly barely moves its score - the slope right there is
     nearly zero.
   </p>
 </div>
@@ -256,7 +256,7 @@ table.compare tr:last-child td{border-bottom:none}
 </p>
 
 <p>
-  You might guess this only happens when the discriminator is "too good."
+  We might guess this only happens when the discriminator is "too good."
   But there's a deeper reason it happens almost inevitably. Generated
   samples all come from passing noise \(z\) through the generator, so they
   live on a comparatively low-dimensional slice of the full data space-
@@ -292,16 +292,16 @@ table.compare tr:last-child td{border-bottom:none}
 
 <p>
   Look at the region where \(q\) is at 20, 25, and 30 (the dotted lines).
-  JS divergence is already flat across that <em>entire</em> stretch- it
+  JS divergence is already flat across that <em>entire</em> stretch. Both KL and JS
   can't tell 20 from 30, because both are "completely disjoint from
-  \(p\)" as far as JS is concerned. That flat line has zero slope, so
+  \(p\)" as far as KL and JS are concerned. That flat line has zero slope, so
   there's no gradient to push \(q\) back toward \(p\).
 </p>
 
 <div class="callout intuition">
 <strong>So the real culprit isn't just the sigmoid:</strong>
 <p>
-  Sigmoid saturation is a symptom. The deeper issue is what the GAN loss is
+  The real issue is what the GAN loss is
   secretly measuring- KL or JS divergence between two distributions. As
   the example above shows, once two distributions are disjoint, these
   divergences stop responding to how far apart they actually are. The
@@ -310,9 +310,9 @@ table.compare tr:last-child td{border-bottom:none}
 </div>
 
 <p>
-  That's the motivation for looking for a <strong>better distance
+ So we need to find a <strong>better distance
   metric</strong>- one that stays smooth and informative even when the two
-  distributions don't overlap, and that keeps shrinking as the generator
+  distributions don't overlap, and that keeps shrinking smoothly as the generator
   gets closer to the real data. That's exactly what the
   <strong>Wasserstein distance</strong> gives us.
 </p>
