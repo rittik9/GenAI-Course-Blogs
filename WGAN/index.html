@@ -135,7 +135,7 @@ table.compare tr:last-child td{border-bottom:none}
 
 <aside>
   <div class="course-label">Generative AI</div>
-  <h2>The Wasserstein Distance</h2>
+  <h2>The Wasserstein GAN</h2>
   <nav aria-label="Table of contents">
     <a href="#vanishing">1. The Vanishing Gradient Problem</a>
     <a href="#intuition">2. Earth Mover's Intuition</a>
@@ -284,6 +284,9 @@ table.compare tr:last-child td{border-bottom:none}
 
 <div style="margin:20px 0;">
   <img src="images/img1.png" alt="p fixed at 0, q slides from 20 to 25 to 30, none overlapping" style="width:100%; border:1px solid var(--border); border-radius:8px;">
+  <p class="small" style="text-align:center;">
+    <a href="https://jonathan-hui.medium.com/gan-wasserstein-gan-wgan-gp-6a1a2aa1b490" target="_blank" rel="noopener noreferrer">Image Source</a>
+  </p>
 </div>
 
 <p>
@@ -294,6 +297,9 @@ table.compare tr:last-child td{border-bottom:none}
 
 <div style="margin:20px 0;">
   <img src="images/img2.png" alt="KL divergence keeps rising then flattens; JS divergence flattens almost immediately, with a vanishing-gradient region highlighted" style="width:100%; border:1px solid var(--border); border-radius:8px;">
+  <p class="small" style="text-align:center;">
+    <a href="https://jonathan-hui.medium.com/gan-wasserstein-gan-wgan-gp-6a1a2aa1b490" target="_blank" rel="noopener noreferrer">Image Source</a>
+  </p>
 </div>
 
 <p>
@@ -910,6 +916,20 @@ D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
   learning: \(f\) can be approximated by a neural network trained via
   gradient ascent, forming the basis of Wasserstein GANs.
 </li>
+<li>
+  Enforcing the Lipschitz constraint via weight clipping (plain WGAN) is
+  crude and can hurt the critic's capacity; <strong>WGAN-GP</strong>
+  replaces it with a gradient penalty that keeps the critic's gradient
+  norm near 1 directly, giving more stable training and better samples.
+</li>
+ 
+<p class="small">
+  Refer the actual papers for more details: Arjovsky, Chintala &amp; Bottou's
+  <a href="https://arxiv.org/abs/1701.07875" target="_blank" rel="noopener noreferrer">WGAN</a>
+  (2017) and Gulrajani et al.'s
+  <a href="https://arxiv.org/abs/1704.00028" target="_blank" rel="noopener noreferrer">WGAN-GP</a>
+  (2017).
+</p>
 </ul>
 
 <div class="callout success">
