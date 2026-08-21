@@ -323,9 +323,8 @@ table.compare tr:last-child td{border-bottom:none}
   
   <p>
     The Wasserstein distance - or, the
-    <strong>earth mover's distance</strong> - is the quantity of work
-    required to transport the probability mass from one distribution to
-    create the other. Here, <strong>"work"</strong> is defined as the mass
+    <strong>earth mover's distance</strong> - is the minimum quantity of work
+    required to transform one probability distribution into another. Here, <strong>"work"</strong> is defined as the mass
     moved, multiplied by the distance it's moved over.
   </p>
   
@@ -337,7 +336,7 @@ table.compare tr:last-child td{border-bottom:none}
   </p>
   
   <div style="margin:24px 0;">
-    <img src="images/distribution_dirt_transport.gif"
+    <img src="images/img3.gif"
          alt="Animation of a source distribution p(x) being reshaped into a target distribution q(x) by shovelling mass from where there's too much to where there's too little"
          style="width:100%; border:1px solid var(--border); border-radius:8px;">
     <p class="small" style="text-align:center;">
@@ -346,8 +345,7 @@ table.compare tr:last-child td{border-bottom:none}
   </div>
   
   <p>
-    This immediately sounds more promising than a pointwise density
-    comparison: the Wasserstein distance is well-defined even when the two
+    This immediately sounds more promising: the Wasserstein distance is well-defined even when the two
     distributions are disjoint, and it decreases smoothly as they become
     closer to one another. A KL or JS divergence, by contrast, can be flat,
     infinite, or undefined in exactly this regime.
@@ -396,7 +394,7 @@ D_w\big[Pr(x)\,\|\,q(x)\big]
 \[
 \begin{aligned}
 \sum_j P_{ij} &= Pr(x=i) &&\text{initial distribution of } Pr(x)\\
-\sum_i P_{ij} &= q(x=j) &&\text{initial distribution of } q(x)\\
+\sum_i P_{ij} &= q(x=j) &&\text{target distribution} q(x)\\
 P_{ij} &\geq 0 &&\text{non-negative masses}
 \end{aligned}
 \]
@@ -417,17 +415,6 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
   shuffling, and pick the matrix that makes the total cost as small as
   possible.
 </p>
-
-<div class="callout intuition">
-<strong>A delivery-problem analogy:</strong>
-<p>
-  Think of bin \(i\) as a warehouse and bin \(j\) as a store. You need to
-  decide how many boxes go from each warehouse to each store. Many
-  different delivery plans could work- \(\min_{\mathbf{P}}\) is choosing
-  the <em>cheapest</em> one, where cost = (boxes moved) × (distance
-  travelled).
-</p>
-</div>
 
 <h3>Why do the constraints matter?</h3>
 
@@ -466,22 +453,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
   arbitrary, unconstrained cost.
 </p>
 
-<div class="callout warning">
-<strong>A wording trap: "initial distribution"</strong>
-<p>
-  Both \(Pr(x)\) and \(q(x)\) get labeled "initial distribution" in the
-  constraints- which makes it sound like \(q(x)\) is also a starting
-  point. It isn't. Here, "initial" just means "given to us before we start
-  solving the problem"- both distributions are fixed, known inputs, the
-  same way any optimization has "given" data. It's not describing a
-  timeline of mass moving from A to B. \(Pr(x)\) is the
-  <strong>source</strong> (mass leaves these bins); \(q(x)\) is the
-  <strong>target</strong> (mass arrives in these bins). Both constraints do
-  the same kind of job- pinning \(\mathbf{P}\)'s marginals to a known
-  distribution- one for where mass leaves from, one for where it has to
-  land.
-</p>
-</div>
+
 
 <p>
   Put together: \(D_w\) is the cheapest way to reshape the pile \(Pr(x)\)
@@ -547,7 +519,7 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <strong>Why it favors the diagonal:</strong>
 <p>
   Since the objective minimizes \(\sum_{ij}P_{ij}\cdot|i-j|\), the optimizer
-  naturally prefers to put mass where the cost \(|i-j|\) is small- that is,
+  naturally prefers to put more mass where the cost \(|i-j|\) is small- that is,
   close to the diagonal, where a bin is mostly transported to itself or a
   nearby bin. Moving mass far away is only worth it when there's no cheaper
   option. That's exactly the pattern visible in panel c) above: the bright,
@@ -562,9 +534,9 @@ P_{ij} &\geq 0 &&\text{non-negative masses}
 <p>
   This minimization is inconvenient to work with directly: we'd have to
   solve for every element \(P_{ij}\) of the transport plan every single
-  time we want to compute the distance. Fortunately, this is a
-  well-studied kind of problem- a <strong>linear programming problem</strong>,
-  in what's called its <em>primal form</em>.
+  time we want to compute the distance. Fortunately, this isn't a new kind of problem it's a
+  <strong>linear programming problem</strong>, in what's called its
+  <em>primal form</em>.
 </p>
 
 <div class="key-result">
