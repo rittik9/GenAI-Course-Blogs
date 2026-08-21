@@ -319,23 +319,40 @@ table.compare tr:last-child td{border-bottom:none}
 </section>
 
 <section id="intuition">
-<h2>2. Earth Mover's Intuition</h2>
-
-<p>
-  Picture each distribution as a pile of dirt. Turning one pile into the
-  other means shoveling dirt from wherever it currently sits to wherever it
-  needs to end up. Here, <strong>"work"</strong> is defined as the mass
-  moved, multiplied by the distance it's moved over.
-</p>
-
-<p>
-  This immediately sounds more promising than a pointwise density
-  comparison: the Wasserstein distance stays well-defined and smooth even
-  when the two distributions are disjoint- and it decreases smoothly as
-  the distributions become closer to one another. A KL or JS divergence,
-  by contrast, can be flat, infinite, or undefined in exactly this regime.
-</p>
-</section>
+  <h2>2. Earth Mover's Intuition</h2>
+  
+  <p>
+    The Wasserstein distance - or, the
+    <strong>earth mover's distance</strong> - is the quantity of work
+    required to transport the probability mass from one distribution to
+    create the other. Here, <strong>"work"</strong> is defined as the mass
+    moved, multiplied by the distance it's moved over.
+  </p>
+  
+  <p>
+    Picture each distribution as a pile of dirt. Turning one pile into the
+    other means shoveling dirt from wherever it currently sits to wherever it
+    needs to end up - and the total work is exactly that sum of mass times
+    distance, added up over every shovelful.
+  </p>
+  
+  <div style="margin:24px 0;">
+    <img src="images/distribution_dirt_transport.gif"
+         alt="Animation of a source distribution p(x) being reshaped into a target distribution q(x) by shovelling mass from where there's too much to where there's too little"
+         style="width:100%; border:1px solid var(--border); border-radius:8px;">
+    <p class="small" style="text-align:center;">
+      The blue pile \(p(x)\) is reshaped into the dashed target \(q(x)\).
+    </p>
+  </div>
+  
+  <p>
+    This immediately sounds more promising than a pointwise density
+    comparison: the Wasserstein distance is well-defined even when the two
+    distributions are disjoint, and it decreases smoothly as they become
+    closer to one another. A KL or JS divergence, by contrast, can be flat,
+    infinite, or undefined in exactly this regime.
+  </p>
+  </section>
 
 <section id="discrete">
 <h2>3. The Discrete Case</h2>
