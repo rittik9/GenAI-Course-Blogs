@@ -121,6 +121,12 @@ table.compare tr:last-child td{border-bottom:none}
   h1{font-size:2rem} h2{font-size:1.4rem}
   main{border-radius:10px}
 }
+.formula {
+  overflow-x: auto;       /* Allows horizontal scroll if the equation is wide */
+  overflow-y: hidden;     /* Removes the vertical scrollbar */
+  padding: 8px 0;         /* Provides extra breathing room for superscripts/subscripts */
+  line-height: normal;    /* Prevents artificial height stretching */
+}
 </style>
 </head>
 
