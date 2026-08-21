@@ -607,6 +607,23 @@ such that \(\mathbf{A}^T\mathbf{f}\leq\mathbf{c}\)
   itself.
 </p>
 </section>
+<div class="callout">
+  <strong>This duality has a name:</strong>
+  <p>
+    For the Wasserstein distance specifically, this primal–dual equivalence
+    is known as the <strong>Kantorovich–Rubinstein duality</strong>. It's
+    the result that lets us swap "search over every transport plan" for
+    "search over one Lipschitz-constrained function \(f\)" - and it's the
+    piece of theory that Wasserstein GANs lean on when they train a critic
+    network in place of a discriminator. For a deeper dive into where this
+    duality comes from, these two write-ups are worth a read:
+  </p>
+  <ul>
+  <li><a href="https://vincentherrmann.github.io/blog/wasserstein/" target="_blank" rel="noopener noreferrer">Vincent Herrmann - "Wasserstein GAN and the Kantorovich-Rubinstein Duality"</a></li>
+  <li><a href="https://abdulfatir.com/blog/2020/Wasserstein-Distance/" target="_blank" rel="noopener noreferrer">Abdul Fatir - "Wasserstein Distance, Contraction Mapping, and Modern RL Theory"</a></li>
+  </ul>
+  </div>
+  </section>
 
 <section id="dual">
 <h2>7. The Dual Form, Explicitly</h2>
