@@ -139,7 +139,7 @@ table.compare tr:last-child td{border-bottom:none}
     <a href="#primal-dual">6. Primal vs. Dual Form</a>
     <a href="#dual">7. The Dual Form, Explicitly</a>
     <a href="#continuous">8. Extending to Continuous Distributions</a>
-    <a href="#takeaways">9. Key Takeaways</a>
+    <a href="#takeaways">10. Key Takeaways</a>
   </nav>
 </aside>
 
@@ -746,8 +746,151 @@ D_w\big[Pr(\mathbf{x}),q(\mathbf{x})\big]
 </div>
 </section>
 
+<section id="wgan-loss">
+  <h2>9. The Wasserstein GAN Loss Function</h2>
+   
+  <p>
+    So far this has all been theory about distributions \(Pr(x)\) and
+    \(q(x)\). To actually train a network, we need to turn the dual form
+    into something we can compute on a batch of samples.
+  </p>
+   
+  <p>
+    Recall the dual objective was a maximization over some function \(f\).
+    In a <strong>Wasserstein GAN</strong>, that function is played by a
+    neural network - call its parameters \(\phi\) - and instead of
+    integrating over the true densities, we just plug in the samples we
+    actually have: real examples \(x_i\), and generated examples
+    \(\mathbf{x}_j^*=g[\mathbf{z}_j,\theta]\) produced by the generator
+    \(g\) from noise \(\mathbf{z}_j\).
+  </p>
+   
+  <div class="formula">
+  \[
+  \begin{aligned}
+  L[\phi]
+  &=
+  \sum_j f[\mathbf{x}_j^*,\phi]
+  -
+  \sum_i f[\mathbf{x}_i,\phi]
+  \\
+  &=
+  \sum_j f\big[g[\mathbf{z}_j,\theta],\phi\big]
+  -
+  \sum_i f[\mathbf{x}_i,\phi].
+  \end{aligned}
+  \]
+  </div>
+   
+  <p>
+    Notice this network \(f\) doesn't output a probability anymore - there's
+    no sigmoid squashing it into \([0,1]\). It's usually called the
+    <strong>critic</strong> rather than the "discriminator," and it just
+    outputs a raw score. Training pushes the critic to give high scores to
+    real data and low scores to generated data, and the gap between the two
+    averages <em>is</em> the (approximate) Wasserstein distance.
+  </p>
+   
+  <p>
+    But there's a catch: the dual form was only valid under one condition -
+    the Lipschitz constraint. Translated to the critic network, that means
+    its gradient with respect to the input can never exceed 1 in magnitude,
+    at any point in space:
+  </p>
+   
+  <div class="formula compact">
+  \[
+  \left|\frac{\partial f[\mathbf{x},\phi]}{\partial \mathbf{x}}\right| < 1.
+  \]
+  </div>
+   
+  <div class="callout warning">
+  <strong>The critic can't be left unconstrained:</strong>
+  <p>
+    Without this constraint, the critic could just keep pushing real scores
+    up and fake scores down forever - the objective would grow without
+    bound and training would never converge to anything meaningful. The
+    Lipschitz condition is what keeps the critic honest and keeps
+    \(L[\phi]\) actually tracking the Wasserstein distance.
+  </p>
+  </div>
+   
+  <h3>Enforcing the constraint: weight clipping</h3>
+   
+  <p>
+    The original WGAN paper's fix was blunt but simple: after every update,
+    clip every weight in the critic to a small fixed range, e.g.
+    \([-0.01,\,0.01]\). Bounding the weights this way indirectly bounds how
+    steep the network's output can get, so it approximately enforces the
+    Lipschitz condition.
+  </p>
+   
+  <p>
+    It works, but it's a crude tool. Clipping tends to push the critic
+    toward learning very simple, close-to-linear functions, and picking the
+    clipping range is finicky - too wide and the constraint barely holds,
+    too narrow and the critic loses so much capacity that gradients through
+    it start vanishing again, undoing the whole point of switching to
+    Wasserstein in the first place.
+  </p>
+   
+  <h3>A better fix: WGAN-GP</h3>
+   
+  <p>
+    <strong>WGAN-GP</strong> ("gradient penalty") replaces clipping with a
+    softer, more direct approach: instead of forcing the constraint through
+    the weights, it adds a penalty term to the loss that discourages the
+    critic's gradient norm from drifting away from 1.
+  </p>
+   
+  <div class="two-column">
+  <div class="concept-box">
+  <h3>WGAN (weight clipping)</h3>
+  <p>
+    Hard-clips every weight after each step. Simple to implement, but can
+    make the critic too simple, is sensitive to the clip range, and can
+    still leave the Lipschitz constraint violated or over-enforced in
+    practice.
+  </p>
+  </div>
+  <div class="concept-box">
+  <h3>WGAN-GP (gradient penalty)</h3>
+  <p>
+    Adds a loss term penalizing \(\left(\|\nabla_{\mathbf{x}}f[\mathbf{x},\phi]\|-1\right)^2\),
+    computed at points interpolated between real and generated samples.
+    Lets the critic use its full capacity while nudging its gradient norm
+    toward exactly 1, rather than capping it indirectly.
+  </p>
+  </div>
+  </div>
+   
+  <div class="callout intuition">
+  <strong>Key ideas behind WGAN-GP's improvement:</strong>
+  <ul>
+  <li>
+    It constrains the <strong>gradient directly</strong>, which is what the
+    theory actually asks for - clipping weights was always just an indirect
+    proxy.
+  </li>
+  <li>
+    The critic keeps its <strong>full expressive power</strong> instead of
+    being squeezed toward near-linear behavior by tiny weight ranges.
+  </li>
+  <li>
+    Training becomes noticeably more <strong>stable</strong> and less
+    sensitive to hyperparameter choices - no more hunting for the "right"
+    clipping range.
+  </li>
+  <li>
+    In practice, it tends to produce sharper samples and cleaner
+    convergence behavior than weight-clipped WGAN.
+  </li>
+  </ul>
+  </div>
+  </section>
+
 <section id="takeaways">
-<h2>9. Key Takeaways</h2>
+<h2>10. Key Takeaways</h2>
 
 <ul>
 <li>
