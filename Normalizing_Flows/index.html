@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Normalizing Flows — Generative AI Course</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    tags: 'ams'
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+:root{
+  --bg:#f7f8fa;--paper:#fff;--text:#20242a;--muted:#606873;
+  --border:#e3e6ea;--accent:#3f5f8f;--accent-soft:#eef3f9;
+  --green-soft:#eef7f2;--green:#2e6b4f;
+  --yellow-soft:#fff8e8;--yellow:#8a6718;
+  --shadow:0 8px 28px rgba(20,30,45,.07);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
+  "Segoe UI",sans-serif;line-height:1.72
+}
+.layout{
+  display:grid;grid-template-columns:250px minmax(0,850px);gap:38px;
+  max-width:1180px;margin:0 auto;padding:42px 24px 80px
+}
+aside{position:sticky;top:24px;align-self:start}
+.course-label{
+  font-size:.78rem;font-weight:750;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:8px
+}
+aside h2{font-size:1.15rem;margin:0 0 18px;line-height:1.3}
+nav a{
+  display:block;padding:7px 10px;margin:2px 0;border-radius:7px;
+  color:var(--muted);text-decoration:none;font-size:.92rem
+}
+nav a:hover{background:var(--accent-soft);color:var(--accent)}
+main{
+  background:var(--paper);border:1px solid var(--border);border-radius:16px;
+  box-shadow:var(--shadow);padding:54px 62px 70px;min-width:0
+}
+header{margin-bottom:38px}
+.eyebrow{
+  display:inline-block;padding:5px 10px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);font-size:.72rem;
+  font-weight:700;margin-bottom:12px
+}
+h1{font-size:2.55rem;line-height:1.15;margin:0 0 10px;letter-spacing:-.025em}
+.subtitle{color:var(--muted);font-size:1rem;margin:0}
+h2{font-size:1.55rem;line-height:1.3;margin-top:48px;margin-bottom:18px;color:#1e3a5b}
+h3{font-size:1.08rem;line-height:1.35;margin-top:32px;margin-bottom:12px;color:#354f6b}
+p{margin:14px 0}
+ul,ol{padding-left:25px}
+li{margin:7px 0}
+strong{color:#233f5e}
+.small{color:var(--muted);font-size:.9rem}
+
+.callout{
+  margin:24px 0;padding:17px 20px;border-left:3px solid #6b8aa6;
+  border-radius:8px;background:#f5f8fb
+}
+.callout.intuition{background:var(--green-soft);border-left-color:var(--green)}
+.callout.warning{background:var(--yellow-soft);border-left-color:var(--yellow)}
+.callout.success{background:#f1f7f3;border-left-color:#719b7d}
+.callout strong{color:#274f3e}
+
+.formula{
+  background:#fafbfc;border:1px solid var(--border);border-radius:10px;
+  padding:18px 34px 18px 14px;margin:22px 0;overflow-x:auto;text-align:center
+}
+.formula.compact{padding:10px 34px 10px 15px;margin:15px 0}
+
+.two-column{
+  display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0
+}
+.concept-box{
+  background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px
+}
+.concept-box h3{margin-top:0;font-size:1.02rem}
+
+.key-result{
+  border:1.5px solid #cfd8e5;background:#fbfcfe;border-radius:12px;
+  padding:20px 22px;margin:26px 0
+}
+.key-result>strong{color:var(--accent)}
+
+.flow-diagram{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin:28px 0;width:100%;flex-wrap:wrap
+}
+.flow-box{
+  flex:1;min-width:70px;padding:14px 10px;text-align:center;
+  border:1.5px solid #9eabbc;border-radius:10px;background:#fff
+}
+.flow-box .title{font-weight:650;color:#344f6b;font-size:.95rem}
+.flow-box .label{display:block;margin-top:5px;font-size:.76rem;color:#75828d}
+.flow-arrow{flex:0 0 auto;color:#69778a;font-size:1.2rem}
+
+footer{
+  margin-top:55px;padding-top:24px;border-top:1px solid var(--border);
+  color:var(--muted);font-size:.88rem
+}
+
+@media(max-width:900px){
+  .layout{display:block;padding:18px 12px 45px}
+  aside{position:static;margin-bottom:16px}
+  nav{display:flex;flex-wrap:wrap;gap:4px}
+  nav a{background:#fff;border:1px solid var(--border)}
+  main{padding:34px 24px 48px}
+  .flow-diagram{flex-wrap:wrap}
+}
+@media(max-width:600px){
+  .two-column{grid-template-columns:1fr}
+  h1{font-size:2rem} h2{font-size:1.4rem}
+  main{border-radius:10px}
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<aside>
+  <div class="course-label">Generative AI</div>
+  <h2>Normalizing Flows</h2>
+  <nav aria-label="Table of contents">
+    <a href="#intro">1. What Are Normalizing Flows?</a>
+    <a href="#change-of-variables">2. The Change of Variables Theorem</a>
+    <a href="#example">3. A Worked 1D Example</a>
+    <a href="#derivation">4. Deriving the 1D Formula</a>
+    <a href="#higher-dim">5. Generalizing to Higher Dimensions</a>
+    <a href="#chaining">6. Chaining Simple Flows Into a Complex One</a>
+    <a href="#training-sampling">7. Training vs. Sampling</a>
+    <a href="#good-transform">8. Designing a Good Transformation</a>
+    <a href="#realnvp">9. RealNVP: The Affine Coupling Layer</a>
+    <a href="#cheap-jacobian">10. Why Its Jacobian Is Cheap</a>
+    <a href="#takeaways">11. Key Takeaways</a>
+  </nav>
+</aside>
+
+<main>
+<header>
+  <div class="eyebrow">Generative AI Course · Flow-Based Models</div>
+  <h1>Normalizing Flows</h1>
+  <p class="subtitle">
+    How a chain of simple, invertible transformations turns a plain
+    Gaussian into a complicated data distribution — and lets you compute
+    its exact likelihood.
+  </p>
+</header>
+
+<section id="intro">
+<h2>1. What Are Normalizing Flows?</h2>
+
+<p>
+  Most generative models — GANs, VAEs — are happy to give you samples but
+  can't tell you the exact probability of a given data point. Normalizing
+  flows are unusual: they let you both <strong>sample</strong> and compute
+  an <strong>exact likelihood</strong>, by building the data distribution
+  out of a simple one through a sequence of invertible transformations.
+</p>
+
+<div class="callout intuition">
+<strong>The core idea:</strong>
+<p>
+  Start with something easy to sample from and easy to score — a standard
+  Gaussian \(z\sim\mathcal{N}(0,I)\). Pass it through an invertible
+  function \(f\) to get \(x=f(z)\). If you can track exactly how much
+  \(f\) stretches or squeezes space at every point, you can convert the
+  simple density of \(z\) into the exact density of \(x\) — no
+  approximation required.
+</p>
+</div>
+
+<p>
+  The tool that does this bookkeeping is the <strong>change of variables
+  theorem</strong>. Everything in this post builds up from that one idea.
+</p>
+</section>
+
+<section id="change-of-variables">
+<h2>2. The Change of Variables Theorem</h2>
+
+<p>
+  Suppose you know the distribution of a random variable \(X\), and you
+  want the distribution of \(Y=f(X)\) for some function \(f\). The change
+  of variables theorem tells you exactly how to get it.
+</p>
+
+<p>
+  Recall what makes something a valid probability density in the first
+  place:
+</p>
+
+<div class="formula compact">
+\[
+p_X(x)\geq 0\ \ \forall x,
+\qquad
+\int_{-\infty}^{\infty}p_X(x)\,dx=1.
+\]
+</div>
+
+<div class="callout warning">
+<strong>The tempting but wrong shortcut:</strong>
+<p>
+  It's natural to guess that if \(Y=2X\), then
+  \(p_Y(y{=}2)=p_X(x{=}1)\) — just plug the corresponding \(x\) value
+  straight into \(p_X\). This is <strong>wrong</strong>. Stretching or
+  squeezing a variable changes how "spread out" its probability mass is,
+  and a density has to account for that, not just relabel the axis.
+</p>
+</div>
+</section>
+
+<section id="example">
+<h2>3. A Worked 1D Example</h2>
+
+<p>
+  Here's why the naive shortcut fails. Suppose \(A\) is uniform, with
+  density \(p_A(a)=0.5\) over the interval \([0,2]\) — a flat rectangle of
+  height 0.5 and width 2, so the total area (total probability) is
+  \(0.5\times2=1\).
+</p>
+
+<p>
+  Now transform it with \(y=a/4\), squeezing the interval \([0,2]\) down
+  to \([0,0.5]\). For this to still be a valid density, the area still has
+  to equal 1 — but the width just shrank by a factor of 4. So the
+  <strong>height has to grow by a factor of 4</strong> to compensate:
+  \(p_A(a)=2\) over \([0,0.5]\).
+</p>
+
+<div style="margin:24px 0;">
+  <svg viewBox="0 0 700 260" width="100%" role="img" aria-label="A uniform density before and after squeezing by a factor of 4">
+    <!-- before panel -->
+    <rect x="30" y="20" width="290" height="190" fill="#fafbfc" stroke="#dfe4e9" rx="8"/>
+    <line x1="30" y1="180" x2="320" y2="180" stroke="#596572" stroke-width="1.2"/>
+    <line x1="30" y1="180" x2="30" y2="30" stroke="#596572" stroke-width="1.2"/>
+    <text x="175" y="200" text-anchor="middle" font-size="12" fill="#4d5965">a</text>
+    <text x="20" y="105" text-anchor="middle" font-size="12" fill="#4d5965" transform="rotate(-90 20 105)">density</text>
+    <rect x="30" y="140" width="230" height="40" fill="#c0392b" opacity="0.35" stroke="#c0392b" stroke-width="1.5"/>
+    <text x="145" y="130" text-anchor="middle" font-size="13" fill="#c0392b">p_A(a) = 0.5</text>
+    <text x="30" y="200" font-size="11" fill="#4d5965">0.0</text>
+    <text x="255" y="200" font-size="11" fill="#4d5965">2.0</text>
+    <text x="175" y="45" text-anchor="middle" font-size="13" font-weight="700" fill="#37434f">Before</text>
+
+    <text x="345" y="130" text-anchor="middle" font-size="20" fill="#69778a">&#8594;</text>
+    <text x="345" y="150" text-anchor="middle" font-size="11" fill="#69778a">y = a/4</text>
+
+    <!-- after panel -->
+    <rect x="380" y="20" width="290" height="190" fill="#fafbfc" stroke="#dfe4e9" rx="8"/>
+    <line x1="380" y1="180" x2="670" y2="180" stroke="#596572" stroke-width="1.2"/>
+    <line x1="380" y1="180" x2="380" y2="30" stroke="#596572" stroke-width="1.2"/>
+    <text x="525" y="200" text-anchor="middle" font-size="12" fill="#4d5965">y</text>
+    <rect x="380" y="40" width="58" height="140" fill="#c0392b" opacity="0.35" stroke="#c0392b" stroke-width="1.5"/>
+    <text x="480" y="60" text-anchor="middle" font-size="13" fill="#c0392b">p_A(a) = 2</text>
+    <text x="380" y="200" font-size="11" fill="#4d5965">0.0</text>
+    <text x="425" y="200" font-size="11" fill="#4d5965">0.5</text>
+    <text x="525" y="45" text-anchor="middle" font-size="13" font-weight="700" fill="#37434f">After transform</text>
+  </svg>
+</div>
+
+<div class="callout intuition">
+<strong>The rule that makes this work:</strong>
+<p>
+  The <strong>probability mass</strong> between any two points has to stay
+  the same after the transform, so that the total area under the curve
+  still integrates to 1. Squeeze the axis, and the density has to rise to
+  compensate; stretch the axis, and the density has to fall.
+</p>
+</div>
+</section>
+
+<section id="derivation">
+<h2>4. Deriving the 1D Formula</h2>
+
+<p>
+  Let's make that "compensate" idea precise. Take a thin sliver of
+  \(x\)-axis, from \(x\) to \(x+dx\), and see where it lands after passing
+  through \(f\). For \(f(x)=2x\):
+</p>
+
+<div class="formula compact">
+\[
+dy = f(x+dx)-f(x) = (2x+2dx)-2x = 2\,dx.
+\]
+</div>
+
+<p>
+  The key requirement is that the two regions — the thin sliver on the
+  \(x\)-axis and its image on the \(y\)-axis — must contain the
+  <strong>same amount of probability mass</strong>:
+</p>
+
+<div class="formula compact">
+\[
+p_X(x)\,dx = p_Y(y)\,dy.
+\]
+</div>
+
+<p>
+  Rearranging this gives the general rule for one dimension:
+</p>
+
+<div class="formula">
+\[
+p_Y(y) = p_X(x)\left|\frac{dx}{dy}\right|
+=
+p_X(x)\left|\frac{d\big(f^{-1}(y)\big)}{dy}\right|,
+\qquad y=f(x).
+\]
+</div>
+
+<div class="callout warning">
+<strong>Why the absolute value?</strong>
+<p>
+  \(dx/dy\) can be negative — for instance if \(f\) is decreasing. But a
+  probability density can never be negative. Taking the absolute value
+  handles both increasing and decreasing transformations with the same
+  formula.
+</p>
+</div>
+
+<p>
+  Since \(y=f(x)\), the chain rule tells us
+  \(\dfrac{d(f^{-1}(y))}{dy}=\left(\dfrac{df(x)}{dx}\right)^{-1}\), so this
+  is equivalent to:
+</p>
+
+<div class="formula">
+\[
+\boxed{
+p_Y(y) = p_X(x)\left|\frac{df(x)}{dx}\right|^{-1}
+}
+\]
+</div>
+
+<div class="two-column">
+<div class="concept-box">
+<h3>Compressing: \(f(x)=x/4\)</h3>
+<p>
+  Here \(dx/dy=4\). Squeezing the input space by a factor of 4 makes the
+  density 4&times; <strong>taller</strong> — the samples got packed
+  tighter together.
+</p>
+</div>
+<div class="concept-box">
+<h3>Stretching: \(f(x)=2x\)</h3>
+<p>
+  Here \(dx/dy=1/2\). Spreading the input space out by a factor of 2 makes
+  the density <strong>half as tall</strong> — the samples got spread
+  thinner.
+</p>
+</div>
+</div>
+</section>
+
+<section id="higher-dim">
+<h2>5. Generalizing to Higher Dimensions</h2>
+
+<p>
+  In 1D, a "sliver" was just a length \(dx\), and stretching was just a
+  scalar factor \(dx/dy\). In higher dimensions, a sliver becomes a tiny
+  rectangle (or box) of volume, and a transformation can stretch different
+  directions by different amounts — even rotate and skew the box into a
+  parallelogram.
+</p>
+
+<p>
+  For two dimensions, let \(y_1=f_1(x_1,x_2)\) and \(y_2=f_2(x_1,x_2)\).
+  A small step in \(x\)-space maps to:
+</p>
+
+<div class="formula compact">
+\[
+dy_1 = \frac{\partial f_1}{\partial x_1}dx_1+\frac{\partial f_1}{\partial x_2}dx_2,
+\qquad
+dy_2 = \frac{\partial f_2}{\partial x_1}dx_1+\frac{\partial f_2}{\partial x_2}dx_2.
+\]
+</div>
+
+<div class="callout intuition">
+<strong>Area of a parallelogram:</strong>
+<p>
+  The area swept out by two vectors \(\mathbf{u},\mathbf{v}\) is
+  \(|\det([\mathbf{u}\ \mathbf{v}])|\). A small square of area
+  \(dx_1\,dx_2\) in \(x\)-space gets mapped to a small parallelogram in
+  \(y\)-space, and its area works out to be the original area times the
+  determinant of the <strong>Jacobian matrix</strong> of partial
+  derivatives:
+</p>
+</div>
+
+<div class="formula">
+\[
+dA_y = \left|\det\big(J_f(x)\big)\right|\,dA_x,
+\qquad
+J_f(x)=
+\begin{bmatrix}
+\dfrac{\partial f_1}{\partial x_1} & \dfrac{\partial f_1}{\partial x_2}\\[8pt]
+\dfrac{\partial f_2}{\partial x_1} & \dfrac{\partial f_2}{\partial x_2}
+\end{bmatrix}.
+\]
+</div>
+
+<p>
+  This is exactly the multivariable analogue of \(dy=|f'(x)|\,dx\) from
+  before — the determinant of the Jacobian is just "the scaling factor,"
+  generalized to handle multiple correlated dimensions at once.
+</p>
+
+<p>
+  Conservation of probability mass gives the same kind of equation as
+  before, just with the Jacobian determinant standing in for the scalar
+  derivative:
+</p>
+
+<div class="formula">
+\[
+p_X(x)\,dA_x = p_Y(y)\,dA_y
+\quad\Longrightarrow\quad
+p_Y(y) = p_X(x)\left|\det J_f(x)\right|^{-1}.
+\]
+</div>
+
+<p>
+  Equivalently, written in terms of the inverse function:
+</p>
+
+<div class="formula">
+\[
+\boxed{
+p_Y(y) = p_X\big(f^{-1}(y)\big)\left|\det\!\left(\frac{\partial f^{-1}(y)}{\partial y}\right)\right|
+}
+\]
+</div>
+
+<div class="key-result">
+<strong>A useful shortcut:</strong>
+<p>
+  You never actually need to invert the Jacobian matrix by hand. Since
+  \(f^{-1}(f(x))=x\), differentiating both sides shows
+  \(J_{f^{-1}}(y)=J_f(x)^{-1}\), and because
+  \(\det(A^{-1})=\det(A)^{-1}\) for any invertible matrix \(A\), you can
+  always compute whichever Jacobian determinant is more convenient and
+  just take the reciprocal.
+</p>
+</div>
+
+<p>
+  Putting \(x\) as our data and \(z\sim\mathcal{N}(0,I)\) as a simple base
+  distribution, with \(x=f(z)\):
+</p>
+
+<div class="formula compact">
+\[
+p_X(x) = p_Z\big(f^{-1}(x)\big)\left|\det\!\left(\frac{\partial f^{-1}(x)}{\partial x}\right)\right|,
+\]
+</div>
+
+<p>
+  provided \(f\) is differentiable and invertible. This single equation is
+  the entire foundation of normalizing flows.
+</p>
+</section>
+
+<section id="chaining">
+<h2>6. Chaining Simple Flows Into a Complex One</h2>
+
+<p>
+  Taking a log of both sides turns the product into a sum — and gives us
+  the <strong>log-likelihood</strong>, which is what we'll actually
+  maximize during training:
+</p>
+
+<div class="formula">
+\[
+\log p_X(x) = \log p_Z\big(f^{-1}(x)\big) + \log\left|\det\!\left(\frac{\partial f^{-1}(x)}{\partial x}\right)\right|.
+\]
+</div>
+
+<p>
+  Since \(z\sim\mathcal{N}(0,I)\), its log-density has a simple closed
+  form:
+</p>
+
+<div class="formula compact">
+\[
+p(z)=\frac{1}{(2\pi)^{D/2}}\exp\!\left(-\tfrac12 z^\top z\right)
+\quad\Longrightarrow\quad
+\log p(z) = -\tfrac{D}{2}\log(2\pi)-\tfrac12 z^\top z.
+\]
+</div>
+
+<div class="callout warning">
+<strong>The catch:</strong>
+<p>
+  \(f\) has to stay invertible, so it can't be an arbitrarily complicated
+  neural network. Expecting one modestly simple invertible function to
+  turn a plain Gaussian directly into a rich, complex data distribution is
+  asking too much of it.
+</p>
+</div>
+
+<p>
+  The fix: <strong>stack many simple invertible transformations in a
+  row.</strong> Each individual step \(f_n\) can be simple, but the
+  composition of many of them can represent something far more complex.
+</p>
+
+<div class="flow-diagram">
+  <div class="flow-box"><div class="title">\(z_0\)</div><div class="label">simple noise</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">\(f_1\)</div><div class="label">neural net</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">\(z_1\)</div></div>
+  <div class="flow-arrow">&#8594;&#8226;&#8226;&#8226;&#8594;</div>
+  <div class="flow-box"><div class="title">\(f_N\)</div><div class="label">neural net</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">\(z_N=x\)</div><div class="label">data sample</div></div>
+</div>
+
+<p>
+  Each \(f_n\) is invertible, so the whole composed function
+  \(F=f_N\circ f_{N-1}\circ\cdots\circ f_1\) is automatically invertible
+  too, with inverse \(F^{-1}=f_1^{-1}\circ f_2^{-1}\circ\cdots\circ
+  f_N^{-1}\).
+</p>
+
+<p>
+  Applying the log-likelihood formula once per step and telescoping the
+  result all the way back to \(z_0\) gives:
+</p>
+
+<div class="key-result">
+<strong>The normalizing flow log-likelihood:</strong>
+<div class="formula compact">
+\[
+\log p_X(x) = \log p_{Z_0}(z_0) + \sum_{n=1}^{N}\log\left|\det\!\left(\frac{\partial f_n^{-1}(z_n)}{\partial z_n}\right)\right|.
+\]
+</div>
+<p>
+  Training maximizes this quantity directly — an <strong>exact</strong>
+  log-likelihood, with no approximation or lower bound involved.
+</p>
+</div>
+</section>
+
+<section id="training-sampling">
+<h2>7. Training vs. Sampling</h2>
+
+<p>
+  Notice the formula above runs in the <strong>inverse</strong> direction
+  — from data \(x=z_N\) back down to \(z_0\), through
+  \(f_N^{-1},f_{N-1}^{-1},\ldots,f_1^{-1}\). That asymmetry defines two
+  distinct passes through the model:
+</p>
+
+<div class="two-column">
+<div class="concept-box">
+<h3>Training (normalizing direction)</h3>
+<p>
+  We go from the data distribution to the simple Gaussian, using the
+  inverse functions, and maximize \(\log p_X(x)\) — equivalently,
+  minimize \(-\log p_X(x)\), the negative log-likelihood of the data.
+  This is where the name <strong>normalizing flow</strong> comes from.
+</p>
+</div>
+<div class="concept-box">
+<h3>Sampling (generative direction)</h3>
+<p>
+  We draw \(z_0\sim\mathcal{N}(0,I)\) and run it through the
+  <strong>forward</strong> pass — \(f_1,f_2,\ldots,f_N\) — to produce a new
+  data sample \(x\). This direction is used for inference/generation.
+</p>
+</div>
+</div>
+</section>
+
+<section id="good-transform">
+<h2>8. Designing a Good Transformation</h2>
+
+<p>
+  Not just any neural network can serve as one of the \(f_n\) steps. To be
+  usable inside a flow, a transformation needs to satisfy a short list of
+  constraints:
+</p>
+
+<ul>
+<li>It must be <strong>easily invertible</strong> and
+  <strong>differentiable</strong>.</li>
+<li>The <strong>determinant of its Jacobian</strong> must be cheap to
+  compute.</li>
+<li>Its output \(z_n\) must have the <strong>same dimensionality</strong>
+  as the input \(x\) — e.g. if \(x\in\mathbb{R}^{3\times256\times256}\),
+  every intermediate \(z_n\) lives in that same space.</li>
+</ul>
+
+<div class="callout warning">
+<strong>Why the Jacobian constraint matters so much:</strong>
+<p>
+  For data of dimensionality \(n\), a general Jacobian is an
+  \(n\times n\) matrix. Computing the determinant of an arbitrary
+  \(n\times n\) matrix during every training step would be prohibitively
+  expensive for anything image-sized. Flow architectures are essentially
+  defined by clever tricks for dodging this cost.
+</p>
+</div>
+</section>
+
+<section id="realnvp">
+<h2>9. RealNVP: The Affine Coupling Layer</h2>
+
+<p>
+  <strong>RealNVP</strong> solves the Jacobian problem with a building
+  block called the <strong>affine coupling layer</strong>. The trick:
+  split the input into two parts, leave one part completely untouched,
+  and use it to control how the other part is shifted and rescaled.
+</p>
+
+<p>
+  Split \(x\) into \(x_{1:d}\) and \(x_{d+1:D}\). The forward pass is:
+</p>
+
+<div class="formula">
+\[
+\begin{aligned}
+y_{1:d} &= x_{1:d}\\
+y_{d+1:D} &= x_{d+1:D}\odot\exp\big(s(x_{1:d})\big) + t(x_{1:d})
+\end{aligned}
+\]
+</div>
+
+<p>
+  Here \(s\) (scale) and \(t\) (shift) are two ordinary neural networks
+  that take only the untouched part \(x_{1:d}\) as input. The exponential
+  is there because the networks predict a <em>log-scale</em>, which keeps
+  the scaling factor guaranteed positive.
+</p>
+
+<div class="flow-diagram">
+  <div class="flow-box"><div class="title">\(x_{1:d}\)</div><div class="label">passed through</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">\(y_{1:d}=x_{1:d}\)</div></div>
+</div>
+<div class="flow-diagram">
+  <div class="flow-box"><div class="title">\(x_{1:d}\)</div><div class="label">conditions on</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">scale \(s\), shift \(t\)</div><div class="label">neural nets</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">\(x_{d+1:D}\odot e^{s}+t\)</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">\(y_{d+1:D}\)</div></div>
+</div>
+
+<p>
+  Because \(s\) and \(t\) only ever see \(x_{1:d}\) as input, inverting
+  this transformation is simple algebra — no matrix inversion needed:
+</p>
+
+<div class="formula">
+\[
+\begin{aligned}
+x_{1:d} &= y_{1:d}\\
+x_{d+1:D} &= \big(y_{d+1:D}-t(y_{1:d})\big)\odot\exp\big(-s(y_{1:d})\big)
+\end{aligned}
+\]
+</div>
+</section>
+
+<section id="cheap-jacobian">
+<h2>10. Why Its Jacobian Is Cheap</h2>
+
+<p>
+  Write out the Jacobian of the coupling transformation with respect to
+  \((x_{1:d},x_{d+1:D})\):
+</p>
+
+<div class="formula">
+\[
+\frac{\partial(y_{1:d},y_{d+1:D})}{\partial(x_{1:d},x_{d+1:D})}
+=
+\begin{bmatrix}
+I_d & 0\\
+\dfrac{\partial y_{d+1:D}}{\partial x_{1:d}} & \operatorname{diag}\big(\exp[s(x_{1:d})]\big)
+\end{bmatrix}.
+\]
+</div>
+
+<p>
+  The top-left block is the identity \(I_d\), since the first part of the
+  output is exactly the first part of the input. That structure makes
+  this a <strong>lower-triangular matrix</strong> — and the determinant of
+  a triangular matrix is just the product of its diagonal entries:
+</p>
+
+<div class="key-result">
+<strong>The payoff:</strong>
+<div class="formula compact">
+\[
+\det(J) = \exp\!\left[\sum_j s(x_{1:d})_j\right].
+\]
+</div>
+<p>
+  We never had to differentiate the scale or shift networks themselves to
+  get this determinant — only sum up the scale network's own output. That
+  means \(s\) and \(t\) are free to be arbitrarily deep, complex neural
+  networks; none of that complexity ever leaks into the cost of computing
+  the Jacobian.
+</p>
+</div>
+
+<p>
+  Plugging this back into the flow log-likelihood collapses nicely:
+</p>
+
+<div class="formula compact">
+\[
+\log p_X(x) = \log p_{Z_0}(z_0) + \sum_{n=1}^{N}\sum_j s\big(x_{1:d}^{(n)}\big)_j.
+\]
+</div>
+
+<h3>Stacking coupling layers</h3>
+
+<p>
+  RealNVP is just a sequence of these affine coupling layers, one feeding
+  into the next:
+</p>
+
+<div class="flow-diagram">
+  <div class="flow-box"><div class="title">\(z_{n-1}\)</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">Affine coupling \(f_n\)</div><div class="label">neural network</div></div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-box"><div class="title">\(z_n\)</div></div>
+</div>
+
+<div class="callout warning">
+<strong>One wrinkle:</strong>
+<p>
+  Since each forward pass leaves \(x_{1:d}\) completely unchanged, that
+  same slice of the data would stay frozen through the <em>entire</em>
+  chain if every layer split the input the same way — clearly not
+  desirable. RealNVP's fix is to <strong>alternate which half is held
+  fixed</strong> from one layer to the next, so every dimension gets
+  transformed by roughly half of the layers.
+</p>
+</div>
+</section>
+
+<section id="takeaways">
+<h2>11. Key Takeaways</h2>
+
+<ul>
+<li>
+  Normalizing flows build a complex data distribution out of a simple
+  base distribution (usually \(\mathcal{N}(0,I)\)) via a chain of
+  <strong>invertible</strong>, <strong>differentiable</strong>
+  transformations.
+</li>
+<li>
+  The <strong>change of variables theorem</strong> is the whole
+  foundation: transforming a variable rescales its density by the
+  (absolute) Jacobian determinant of the transformation, so that total
+  probability is conserved.
+</li>
+<li>
+  Stacking many simple, invertible steps lets the overall model represent
+  something far more complex than any single step could, while keeping
+  everything exactly invertible.
+</li>
+<li>
+  Training runs the <strong>inverse</strong> direction (data &#8594;
+  noise) to maximize the exact log-likelihood; sampling runs the
+  <strong>forward</strong> direction (noise &#8594; data).
+</li>
+<li>
+  A usable transformation needs a Jacobian determinant that's cheap to
+  compute — for general functions, this is an expensive
+  \(n\times n\) determinant.
+</li>
+<li>
+  <strong>RealNVP's affine coupling layer</strong> sidesteps this by
+  leaving half the input untouched and using it to scale and shift the
+  other half, which makes the Jacobian triangular — its determinant is
+  just the product of the diagonal, with no restriction on how complex
+  the scale/shift networks themselves are.
+</li>
+</ul>
+
+<div class="callout success">
+<strong>Big picture:</strong>
+<p>
+  Normalizing flows trade some architectural freedom (every layer must be
+  invertible) for something GANs and VAEs don't offer: an
+  <strong>exact</strong>, tractable likelihood — and the ability to sample
+  and evaluate density with the very same model.
+</p>
+</div>
+</section>
+
+<footer>
+<strong>Course note.</strong>
+This lesson is based on handwritten notes on flow-based deep generative
+models, covering the change of variables theorem and the RealNVP
+architecture from Dinh, Sohl-Dickstein &amp; Bengio,
+<a href="https://arxiv.org/abs/1605.08803" target="_blank" rel="noopener noreferrer">"Density Estimation using Real NVP"</a> (2017).
+</footer>
+
+</main>
+</div>
+</body>
+</html>
