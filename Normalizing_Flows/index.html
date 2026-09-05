@@ -199,7 +199,7 @@ footer{
   <p>
     Concretely: start with something easy to sample from and easy to score
     - a standard Gaussian \(z\sim\mathcal{N}(0,I)\). Pass it through an
-    invertible function \(f\) to get \(x=f(z)\). If you can track exactly
+    deterministic invertible function \(f\) to get \(x=f(z)\). If you can track exactly
     how much \(f\) stretches or squeezes space at every point, you can
     convert the simple density of \(z\) into the exact density of \(x\) - no
     approximation required.
@@ -238,7 +238,7 @@ p_X(x)\geq 0\ \ \forall x,
 <strong>The tempting but wrong shortcut:</strong>
 <p>
   It's natural to guess that if \(Y=2X\), then
-  \(p_Y(y{=}2)=p_X(x{=}1)\) — just plug the corresponding \(x\) value
+  \(p_Y(y{=}2)=p_X(x{=}1)\) - just plug the corresponding \(x\) value
   straight into \(p_X\). This is <strong>wrong</strong>. Stretching or
   squeezing a variable changes how "spread out" its probability mass is,
   and a density has to account for that, not just relabel the axis.
