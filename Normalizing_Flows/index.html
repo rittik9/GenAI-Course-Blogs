@@ -332,19 +332,19 @@ p_Z(z)\geq 0\ \ \forall z,
 
 <div class="formula compact">
 \[
-dy = f(x+dx)-f(x) = (2x+2dx)-2x = 2\,dx.
+dx = f(z+dz)-f(z) = (2z+2dz)-2z = 2\,dz.
 \]
 </div>
 
 <p>
-  The key requirement is that the two regions — the thin sliver on the
-  \(x\)-axis and its image on the \(y\)-axis — must contain the
+  The key requirement is that the two regions - the thin sliver on the
+  \(z\)-axis and its image on the \(x\)-axis - must contain the
   <strong>same amount of probability mass</strong>:
 </p>
 
 <div class="formula compact">
 \[
-p_X(x)\,dx = p_Y(y)\,dy.
+p_Z(z)\,dz = p_X(x)\,dx.
 \]
 </div>
 
@@ -354,17 +354,17 @@ p_X(x)\,dx = p_Y(y)\,dy.
 
 <div class="formula">
 \[
-p_Y(y) = p_X(x)\left|\frac{dx}{dy}\right|
+p_X(x) = p_Z(z)\left|\frac{dz}{dx}\right|
 =
-p_X(x)\left|\frac{d\big(f^{-1}(y)\big)}{dy}\right|,
-\qquad y=f(x).
+p_Z(z)\left|\frac{d\big(f^{-1}(x)\big)}{dx}\right|,
+\qquad x=f(z).
 \]
 </div>
 
 <div class="callout warning">
 <strong>Why the absolute value?</strong>
 <p>
-  \(dx/dy\) can be negative — for instance if \(f\) is decreasing. But a
+  \(dz/dx\) can be negative - for instance if \(f\) is decreasing. But a
   probability density can never be negative. Taking the absolute value
   handles both increasing and decreasing transformations with the same
   formula.
@@ -372,33 +372,41 @@ p_X(x)\left|\frac{d\big(f^{-1}(y)\big)}{dy}\right|,
 </div>
 
 <p>
-  Since \(y=f(x)\), the chain rule tells us
-  \(\dfrac{d(f^{-1}(y))}{dy}=\left(\dfrac{df(x)}{dx}\right)^{-1}\), so this
-  is equivalent to:
+  Since \(x=f(z)\), the chain rule tells us
+  \[
+  \frac{d(f^{-1}(x))}{dx}
+  =
+  \frac{dz}{dx}
+  =
+  \left(\frac{dx}{dz}\right)^{-1}
+  =
+  \left(\frac{df(z)}{dz}\right)^{-1},
+  \]
+  so this is equivalent to:
 </p>
 
 <div class="formula">
 \[
 \boxed{
-p_Y(y) = p_X(x)\left|\frac{df(x)}{dx}\right|^{-1}
+p_X(x) = p_Z(z)\left|\frac{df(Z)}{dz}\right|^{-1}
 }
 \]
 </div>
 
 <div class="two-column">
 <div class="concept-box">
-<h3>Compressing: \(f(x)=x/4\)</h3>
+<h3>Compressing: \(f(z)=z/4\)</h3>
 <p>
-  Here \(dx/dy=4\). Squeezing the input space by a factor of 4 makes the
-  density 4&times; <strong>taller</strong> — the samples got packed
+  Here \(dz/dx=4\). Squeezing the input space by a factor of 4 makes the
+  density 4&times; <strong>taller</strong> - the samples got packed
   tighter together.
 </p>
 </div>
 <div class="concept-box">
-<h3>Stretching: \(f(x)=2x\)</h3>
+<h3>Stretching: \(f(z)=2z\)</h3>
 <p>
-  Here \(dx/dy=1/2\). Spreading the input space out by a factor of 2 makes
-  the density <strong>half as tall</strong> — the samples got spread
+  Here \(dz/dx=1/2\). Spreading the input space out by a factor of 2 makes
+  the density <strong>half as tall</strong> - the samples got spread
   thinner.
 </p>
 </div>
