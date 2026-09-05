@@ -325,7 +325,7 @@ p_Z(z)\geq 0\ \ \forall z,
   <h2>4. Deriving the 1D Formula</h2>
    
   <p>
-    A single invertible function \(x=f(z,\phi)\) can turn a plain Gaussian
+    A single deterministic invertible function \(x=f(z,\phi)\) can turn a plain Gaussian
     base density into a much richer model density. The figure below shows
     one such function: 
   </p>
@@ -370,6 +370,11 @@ p_Z(z)\geq 0\ \ \forall z,
     formula.
   </p>
   </div>
+  <div style="margin:24px 0;">
+    <img src="images/inverse-mapping.png"
+         alt="Base density, the monotonic function x=f(z,phi), and the resulting model density, with a shaded sliver mapped through the curve"
+         style="width:100%; max-width:480px; display:block; margin:0 auto; border:1px solid var(--border); border-radius:8px;">
+  </div>
    
   <p>
     Since \(x=f(z)\), the chain rule tells us
@@ -392,25 +397,63 @@ p_Z(z)\geq 0\ \ \forall z,
   }
   \]
   </div>
-   
-  <div class="two-column">
-  <div class="concept-box">
-  <h3>Compressing: \(f(z)=z/4\)</h3>
-  <p>
-    Here \(dz/dx=4\). Squeezing the input space by a factor of 4 makes the
-    density 4&times; <strong>taller</strong> - the samples got packed
-    tighter together.
-  </p>
-  </div>
-  <div class="concept-box">
-  <h3>Stretching: \(f(z)=2z\)</h3>
-  <p>
-    Here \(dz/dx=1/2\). Spreading the input space out by a factor of 2 makes
-    the density <strong>half as tall</strong> - the samples got spread
-    thinner.
-  </p>
-  </div>
-  </div>
+ 
+  <div class="callout intuition">
+    <strong>Two concrete examples:</strong>
+    <p>
+      Take a thin sliver of the \(z\)-axis, from \(z\) to \(z+dz\), and see
+      where it lands after passing through \(f\).
+    </p>
+     
+    <div class="formula compact">
+    \[
+    f(z)=\tfrac{z}{4}
+    \;\Longrightarrow\;
+    dx = f(z+dz)-f(z) = \left(\tfrac{z}{4}+\tfrac{dz}{4}\right)-\tfrac{z}{4} = \tfrac{1}{4}\,dz.
+    \]
+    </div>
+     
+    <div class="formula compact">
+    \[
+    f(z)=2z
+    \;\Longrightarrow\;
+    dx = f(z+dz)-f(z) = (2z+2dz)-2z = 2\,dz.
+    \]
+    </div>
+     
+    <div class="two-column">
+    <div class="concept-box">
+    <h3>Compressing: \(f(z)=z/4\)</h3>
+    <p>
+      Here \(\frac{dx}{dz} = \frac{df(z)}{dz} = \frac{1}{4}\), so plugging into the boxed formula:
+    </p>
+    <div class="formula compact">
+    \[
+    p_X(x) = p_Z(z)\left|\frac14\right|^{-1} = 4\,p_Z(z).
+    \]
+    </div>
+    <p>
+      Squeezing the input space by a factor of 4 makes the density 4&times;
+      <strong>taller</strong> - the samples got packed tighter together.
+    </p>
+    </div>
+    <div class="concept-box">
+    <h3>Stretching: \(f(z)=2z\)</h3>
+    <p>
+      Here \(\dfrac{dx}{dz}=\dfrac{df(z)}{dz}=2\), so plugging into the boxed formula:
+    </p>
+    <div class="formula compact">
+    \[
+    p_X(x) = p_Z(z)\left|2\right|^{-1} = \tfrac12\,p_Z(z).
+    \]
+    </div>
+    <p>
+      Spreading the input space out by a factor of 2 makes the density
+      <strong>half as tall</strong> - the samples got spread thinner.
+    </p>
+    </div>
+    </div>
+    </div>
   </section>
 
 <section id="higher-dim">
