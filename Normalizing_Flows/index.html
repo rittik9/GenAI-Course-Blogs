@@ -456,114 +456,159 @@ p_Z(z)\geq 0\ \ \forall z,
     </div>
   </section>
 
-<section id="higher-dim">
-<h2>5. Generalizing to Higher Dimensions</h2>
-
-<p>
-  In 1D, a "sliver line" was just a line of length \(dz\), and compressing or stretching was just a
-  scalar factor \(dx/dz\). In higher dimensions, a sliver becomes a tiny
-  rectangle (or box) of volume, and a transformation can stretch different
-  directions by different amounts - even rotate and skew the box into a
-  parallelogram.
-</p>
-
-<p>
-  For two dimensions, let \(x_1=f_1(z_1,z_2)\) and \(x_2=f_2(z_1,z_2)\).
-  A small step in \(z\)-space maps to:
-</p>
-
-<div class="formula compact">
-\[
-dx_1 = \frac{\partial f_1}{\partial z_1}dz_1+\frac{\partial f_1}{\partial z_2}dz_2,
-\qquad
-dx_2 = \frac{\partial f_2}{\partial z_1}dz_1+\frac{\partial f_2}{\partial z_2}dz_2.
-\]
-</div>
-
-<div class="callout intuition">
-<strong>Area of a parallelogram:</strong>
-<p>
-  The area swept out by two vectors \(\mathbf{u},\mathbf{v}\) is
-  \(|\det([\mathbf{u}\ \mathbf{v}])|\). A small square of area
-  \(dx_1\,dx_2\) in \(x\)-space gets mapped to a small parallelogram in
-  \(y\)-space, and its area works out to be the original area times the
-  determinant of the <strong>Jacobian matrix</strong> of partial
-  derivatives:
-</p>
-</div>
-
-<div class="formula">
-\[
-dA_y = \left|\det\big(J_f(x)\big)\right|\,dA_x,
-\qquad
-J_f(x)=
-\begin{bmatrix}
-\dfrac{\partial f_1}{\partial x_1} & \dfrac{\partial f_1}{\partial x_2}\\[8pt]
-\dfrac{\partial f_2}{\partial x_1} & \dfrac{\partial f_2}{\partial x_2}
-\end{bmatrix}.
-\]
-</div>
-
-<p>
-  This is exactly the multivariable analogue of \(dy=|f'(x)|\,dx\) from
-  before — the determinant of the Jacobian is just "the scaling factor,"
-  generalized to handle multiple correlated dimensions at once.
-</p>
-
-<p>
-  Conservation of probability mass gives the same kind of equation as
-  before, just with the Jacobian determinant standing in for the scalar
-  derivative:
-</p>
-
-<div class="formula">
-\[
-p_X(x)\,dA_x = p_Y(y)\,dA_y
-\quad\Longrightarrow\quad
-p_Y(y) = p_X(x)\left|\det J_f(x)\right|^{-1}.
-\]
-</div>
-
-<p>
-  Equivalently, written in terms of the inverse function:
-</p>
-
-<div class="formula">
-\[
-\boxed{
-p_Y(y) = p_X\big(f^{-1}(y)\big)\left|\det\!\left(\frac{\partial f^{-1}(y)}{\partial y}\right)\right|
-}
-\]
-</div>
-
-<div class="key-result">
-<strong>A useful shortcut:</strong>
-<p>
-  You never actually need to invert the Jacobian matrix by hand. Since
-  \(f^{-1}(f(x))=x\), differentiating both sides shows
-  \(J_{f^{-1}}(y)=J_f(x)^{-1}\), and because
-  \(\det(A^{-1})=\det(A)^{-1}\) for any invertible matrix \(A\), you can
-  always compute whichever Jacobian determinant is more convenient and
-  just take the reciprocal.
-</p>
-</div>
-
-<p>
-  Putting \(x\) as our data and \(z\sim\mathcal{N}(0,I)\) as a simple base
-  distribution, with \(x=f(z)\):
-</p>
-
-<div class="formula compact">
-\[
-p_X(x) = p_Z\big(f^{-1}(x)\big)\left|\det\!\left(\frac{\partial f^{-1}(x)}{\partial x}\right)\right|,
-\]
-</div>
-
-<p>
-  provided \(f\) is differentiable and invertible. This single equation is
-  the entire foundation of normalizing flows.
-</p>
-</section>
+  <section id="higher-dim">
+    <h2>5. Generalizing to Higher Dimensions</h2>
+     
+    <p>
+      In 1D, a "sliver" was just a length \(dz\), and stretching was just a
+      scalar factor \(dz/dx\). In higher dimensions, a sliver becomes a tiny
+      rectangle (or box) of volume, and a transformation can stretch different
+      directions by different amounts — even rotate and skew the box into a
+      parallelogram.
+    </p>
+     
+    <p>
+      For two dimensions, let \(x_1=f_1(z_1,z_2)\) and \(x_2=f_2(z_1,z_2)\).
+      A small step in \(z\)-space maps to:
+    </p>
+     
+    <div class="formula compact">
+    \[
+    dx_1 = \frac{\partial f_1}{\partial z_1}dz_1+\frac{\partial f_1}{\partial z_2}dz_2,
+    \qquad
+    dx_2 = \frac{\partial f_2}{\partial z_1}dz_1+\frac{\partial f_2}{\partial z_2}dz_2.
+    \]
+    </div>
+     
+    <div class="callout intuition">
+    <strong>Area of a parallelogram:</strong>
+    <p>
+      The area swept out by two vectors \(\mathbf{u},\mathbf{v}\) is
+      \(|\det([\mathbf{u}\ \mathbf{v}])|\). A small square of area
+      \(dz_1\,dz_2\) in \(z\)-space gets mapped to a small parallelogram in
+      \(x\)-space, and its area works out to be the original area times the
+      determinant of the <strong>Jacobian matrix</strong> of partial
+      derivatives.
+    </p>
+     
+    <p><strong>Derivation:</strong> the small square \(dA_z\) is itself a
+    diagonal matrix of side lengths \(dz_1,dz_2\), and likewise for its image
+    \(dA_x\):</p>
+     
+    <div class="formula compact">
+    \[
+    \det(dA_x)
+    =
+    \det\!\left(
+    \begin{bmatrix}
+    dx_1 & 0\\
+    0 & dx_2
+    \end{bmatrix}
+    \right).
+    \]
+    </div>
+     
+    <p>Substituting \(dx_1,dx_2\) from the chain rule above splits this into
+    the Jacobian matrix times the diagonal matrix of \(dz_1,dz_2\):</p>
+     
+    <div class="formula compact">
+    \[
+    =
+    \det\!\left(
+    \begin{bmatrix}
+    \dfrac{\partial f_1}{\partial z_1} & \dfrac{\partial f_1}{\partial z_2}\\[8pt]
+    \dfrac{\partial f_2}{\partial z_1} & \dfrac{\partial f_2}{\partial z_2}
+    \end{bmatrix}
+    \begin{bmatrix}
+    dz_1 & 0\\
+    0 & dz_2
+    \end{bmatrix}
+    \right).
+    \]
+    </div>
+     
+    <p>Since the determinant of a product of matrices is the product of their
+    determinants, this factors cleanly:</p>
+     
+    <div class="formula compact">
+    \[
+    \det(dA_x) = \det\big(J_f(z)\big)\cdot\det(A_z).
+    \]
+    </div>
+    </div>
+     
+    <div class="formula">
+    \[
+    dA_x = \left|\det\big(J_f(z)\big)\right|\,dA_z,
+    \qquad
+    J_f(z)=
+    \begin{bmatrix}
+    \dfrac{\partial f_1}{\partial z_1} & \dfrac{\partial f_1}{\partial z_2}\\[8pt]
+    \dfrac{\partial f_2}{\partial z_1} & \dfrac{\partial f_2}{\partial z_2}
+    \end{bmatrix}.
+    \]
+    </div>
+     
+    <p>
+      This is exactly the multivariable analogue of \(dx=|f'(z)|\,dz\) from
+      before — the determinant of the Jacobian is just "the scaling factor,"
+      generalized to handle multiple correlated dimensions at once.
+    </p>
+     
+    <p>
+      Conservation of probability mass gives the same kind of equation as
+      before, just with the Jacobian determinant standing in for the scalar
+      derivative:
+    </p>
+     
+    <div class="formula">
+    \[
+    p_Z(z)\,dA_z = p_X(x)\,dA_x
+    \quad\Longrightarrow\quad
+    p_X(x) = p_Z(z)\left|\det J_f(z)\right|^{-1}.
+    \]
+    </div>
+     
+    <p>
+      Equivalently, written in terms of the inverse function:
+    </p>
+     
+    <div class="formula">
+    \[
+    \boxed{
+    p_X(x) = p_Z\big(f^{-1}(x)\big)\left|\det\!\left(\frac{\partial f^{-1}(x)}{\partial x}\right)\right|
+    }
+    \]
+    </div>
+     
+    <div class="key-result">
+    <strong>A useful shortcut:</strong>
+    <p>
+      You never actually need to invert the Jacobian matrix by hand. Since
+      \(f^{-1}(f(z))=z\), differentiating both sides shows
+      \(J_{f^{-1}}(x)=J_f(z)^{-1}\), and because
+      \(\det(A^{-1})=\det(A)^{-1}\) for any invertible matrix \(A\), you can
+      always compute whichever Jacobian determinant is more convenient and
+      just take the reciprocal.
+    </p>
+    </div>
+     
+    <p>
+      Putting \(x\) as our data and \(z\sim\mathcal{N}(0,I)\) as a simple base
+      distribution, with \(x=f(z)\):
+    </p>
+     
+    <div class="formula compact">
+    \[
+    p_X(x) = p_Z\big(f^{-1}(x)\big)\left|\det\!\left(\frac{\partial f^{-1}(x)}{\partial x}\right)\right|,
+    \]
+    </div>
+     
+    <p>
+      provided \(f\) is differentiable and invertible. This single equation is
+      the entire foundation of normalizing flows.
+    </p>
+    </section>
 
 <section id="chaining">
 <h2>6. Chaining Simple Flows Into a Complex One</h2>
