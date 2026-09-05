@@ -401,7 +401,7 @@ p_Z(z)\geq 0\ \ \forall z,
   <div class="callout intuition">
     <strong>Two concrete examples:</strong>
     <p>
-      Take a thin sliver of the \(z\)-axis, from \(z\) to \(z+dz\), and see
+      Take a thin sliver line of the \(z\)-axis, from \(z\) to \(z+dz\), and see
       where it lands after passing through \(f\).
     </p>
      
@@ -460,23 +460,23 @@ p_Z(z)\geq 0\ \ \forall z,
 <h2>5. Generalizing to Higher Dimensions</h2>
 
 <p>
-  In 1D, a "sliver" was just a length \(dx\), and stretching was just a
-  scalar factor \(dx/dy\). In higher dimensions, a sliver becomes a tiny
+  In 1D, a "sliver line" was just a line of length \(dz\), and compressing or stretching was just a
+  scalar factor \(dx/dz\). In higher dimensions, a sliver becomes a tiny
   rectangle (or box) of volume, and a transformation can stretch different
-  directions by different amounts — even rotate and skew the box into a
+  directions by different amounts - even rotate and skew the box into a
   parallelogram.
 </p>
 
 <p>
-  For two dimensions, let \(y_1=f_1(x_1,x_2)\) and \(y_2=f_2(x_1,x_2)\).
-  A small step in \(x\)-space maps to:
+  For two dimensions, let \(x_1=f_1(z_1,z_2)\) and \(x_2=f_2(z_1,z_2)\).
+  A small step in \(z\)-space maps to:
 </p>
 
 <div class="formula compact">
 \[
-dy_1 = \frac{\partial f_1}{\partial x_1}dx_1+\frac{\partial f_1}{\partial x_2}dx_2,
+dx_1 = \frac{\partial f_1}{\partial z_1}dz_1+\frac{\partial f_1}{\partial z_2}dz_2,
 \qquad
-dy_2 = \frac{\partial f_2}{\partial x_1}dx_1+\frac{\partial f_2}{\partial x_2}dx_2.
+dx_2 = \frac{\partial f_2}{\partial z_1}dz_1+\frac{\partial f_2}{\partial z_2}dz_2.
 \]
 </div>
 
