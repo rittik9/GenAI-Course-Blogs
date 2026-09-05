@@ -322,96 +322,96 @@ p_Z(z)\geq 0\ \ \forall z,
 </section>
 
 <section id="derivation">
-<h2>4. Deriving the 1D Formula</h2>
-
-<p>
-  Let's make that "compensate" idea precise. Take a thin sliver of
-  \(x\)-axis, from \(x\) to \(x+dx\), and see where it lands after passing
-  through \(f\). For \(f(x)=2x\):
-</p>
-
-<div class="formula compact">
-\[
-dx = f(z+dz)-f(z) = (2z+2dz)-2z = 2\,dz.
-\]
-</div>
-
-<p>
-  The key requirement is that the two regions - the thin sliver on the
-  \(z\)-axis and its image on the \(x\)-axis - must contain the
-  <strong>same amount of probability mass</strong>:
-</p>
-
-<div class="formula compact">
-\[
-p_Z(z)\,dz = p_X(x)\,dx.
-\]
-</div>
-
-<p>
-  Rearranging this gives the general rule for one dimension:
-</p>
-
-<div class="formula">
-\[
-p_X(x) = p_Z(z)\left|\frac{dz}{dx}\right|
-=
-p_Z(z)\left|\frac{d\big(f^{-1}(x)\big)}{dx}\right|,
-\qquad x=f(z).
-\]
-</div>
-
-<div class="callout warning">
-<strong>Why the absolute value?</strong>
-<p>
-  \(dz/dx\) can be negative - for instance if \(f\) is decreasing. But a
-  probability density can never be negative. Taking the absolute value
-  handles both increasing and decreasing transformations with the same
-  formula.
-</p>
-</div>
-
-<p>
-  Since \(x=f(z)\), the chain rule tells us
+  <h2>4. Deriving the 1D Formula</h2>
+   
+  <p>
+    A single invertible function \(x=f(z,\phi)\) can turn a plain Gaussian
+    base density into a much richer model density. The figure below shows
+    one such function: 
+  </p>
+   
+  <div style="margin:24px 0;">
+    <img src="images/change-of-variables-figure.png"
+         alt="Base density, the monotonic function x=f(z,phi), and the resulting model density, with a shaded sliver mapped through the curve"
+         style="width:100%; max-width:480px; display:block; margin:0 auto; border:1px solid var(--border); border-radius:8px;">
+  </div>
+   
+  <p>
+    The key requirement is that the two regions - the thin sliver on the
+    \(z\)-axis and its image on the \(x\)-axis - must contain the
+    <strong>same amount of probability mass</strong>:
+  </p>
+   
+  <div class="formula compact">
   \[
-  \frac{d(f^{-1}(x))}{dx}
-  =
-  \frac{dz}{dx}
-  =
-  \left(\frac{dx}{dz}\right)^{-1}
-  =
-  \left(\frac{df(z)}{dz}\right)^{-1},
+  p_Z(z)\,dz = p_X(x)\,dx.
   \]
-  so this is equivalent to:
-</p>
-
-<div class="formula">
-\[
-\boxed{
-p_X(x) = p_Z(z)\left|\frac{df(Z)}{dz}\right|^{-1}
-}
-\]
-</div>
-
-<div class="two-column">
-<div class="concept-box">
-<h3>Compressing: \(f(z)=z/4\)</h3>
-<p>
-  Here \(dz/dx=4\). Squeezing the input space by a factor of 4 makes the
-  density 4&times; <strong>taller</strong> - the samples got packed
-  tighter together.
-</p>
-</div>
-<div class="concept-box">
-<h3>Stretching: \(f(z)=2z\)</h3>
-<p>
-  Here \(dz/dx=1/2\). Spreading the input space out by a factor of 2 makes
-  the density <strong>half as tall</strong> - the samples got spread
-  thinner.
-</p>
-</div>
-</div>
-</section>
+  </div>
+   
+  <p>
+    Rearranging this gives the general rule for one dimension:
+  </p>
+   
+  <div class="formula">
+  \[
+  p_X(x) = p_Z(z)\left|\frac{dz}{dx}\right|
+  =
+  p_Z(z)\left|\frac{d\big(f^{-1}(x)\big)}{dx}\right|,
+  \qquad x=f(z).
+  \]
+  </div>
+   
+  <div class="callout warning">
+  <strong>Why the absolute value?</strong>
+  <p>
+    \(dz/dx\) can be negative - for instance if \(f\) is decreasing. But a
+    probability density can never be negative. Taking the absolute value
+    handles both increasing and decreasing transformations with the same
+    formula.
+  </p>
+  </div>
+   
+  <p>
+    Since \(x=f(z)\), the chain rule tells us
+    \[
+    \frac{d(f^{-1}(x))}{dx}
+    =
+    \frac{dz}{dx}
+    =
+    \left(\frac{dx}{dz}\right)^{-1}
+    =
+    \left(\frac{df(z)}{dz}\right)^{-1},
+    \]
+    so this is equivalent to:
+  </p>
+   
+  <div class="formula">
+  \[
+  \boxed{
+  p_X(x) = p_Z(z)\left|\frac{df(Z)}{dz}\right|^{-1}
+  }
+  \]
+  </div>
+   
+  <div class="two-column">
+  <div class="concept-box">
+  <h3>Compressing: \(f(z)=z/4\)</h3>
+  <p>
+    Here \(dz/dx=4\). Squeezing the input space by a factor of 4 makes the
+    density 4&times; <strong>taller</strong> - the samples got packed
+    tighter together.
+  </p>
+  </div>
+  <div class="concept-box">
+  <h3>Stretching: \(f(z)=2z\)</h3>
+  <p>
+    Here \(dz/dx=1/2\). Spreading the input space out by a factor of 2 makes
+    the density <strong>half as tall</strong> - the samples got spread
+    thinner.
+  </p>
+  </div>
+  </div>
+  </section>
 
 <section id="higher-dim">
 <h2>5. Generalizing to Higher Dimensions</h2>
