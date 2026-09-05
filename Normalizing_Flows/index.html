@@ -190,16 +190,21 @@ footer{
 </p>
 
 <div class="callout intuition">
-<strong>The core idea:</strong>
-<p>
-  Start with something easy to sample from and easy to score, a standard
-  Gaussian \(z\sim\mathcal{N}(0,I)\). Pass it through an invertible
-  function \(f\) to get \(x=f(z)\). If you can track exactly how much
-  \(f\) stretches or squeezes space at every point, you can convert the
-  simple density of \(z\) into the exact density of \(x\) - no
-  approximation required.
-</p>
-</div>
+  <strong>The basic idea:</strong>
+  <p>
+    An arbitrary random variable can be transformed into another random
+    variable of interest via repeated application of invertible,
+    deterministic functions.
+  </p>
+  <p>
+    Concretely: start with something easy to sample from and easy to score
+    - a standard Gaussian \(z\sim\mathcal{N}(0,I)\). Pass it through an
+    invertible function \(f\) to get \(x=f(z)\). If you can track exactly
+    how much \(f\) stretches or squeezes space at every point, you can
+    convert the simple density of \(z\) into the exact density of \(x\) - no
+    approximation required.
+  </p>
+  </div>
 
 <p>
   The tool that does this bookkeeping is the <strong>change of variables
