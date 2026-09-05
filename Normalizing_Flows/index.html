@@ -295,16 +295,29 @@ p_Z(z)\geq 0\ \ \forall z,
 </div>
 
 <div class="callout intuition">
-<strong>The rule that makes this work:</strong>
-<p>
-  The total area under the curve
-  still integrates to 1 after transformation. \[
-  \int_{-\infty}^{\infty}p_Z(z)\,dz=1=
-  \int_{-\infty}^{\infty}p_X(x)\,dx=1.
-  \]
-  Squeeze the axis, and the density has to rise to
-  compensate; stretch the axis, and the density has to fall.
-</p>
+  <strong>The rule that makes this work:</strong>
+  <p>
+    The total probability mass must remain unchanged after the transformation.
+    In other words, the area under the probability density must still integrate
+    to \(1\):
+  </p>
+
+  <div class="formula compact">
+    \[
+    \int_{-\infty}^{\infty} p_Z(z)\,dz
+    =
+    1
+    =
+    \int_{-\infty}^{\infty} p_X(x)\,dx.
+    \]
+  </div>
+
+  <p>
+    Therefore, when the transformation <strong>squeezes</strong> the axis,
+    the density must increase to compensate for the reduced width. Conversely,
+    when it <strong>stretches</strong> the axis, the density must decrease so
+    that the total probability mass remains \(1\).
+  </p>
 </div>
 </section>
 
