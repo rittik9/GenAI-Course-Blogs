@@ -216,8 +216,8 @@ footer{
 <h2>2. The Change of Variables Theorem</h2>
 
 <p>
-  Suppose you know the distribution of a random variable \(X\), and you
-  want the distribution of \(Y=f(X)\) for some function \(f\). The change
+  Suppose you know the distribution of a random variable \(Z\), and you
+  want the distribution of \(X=f(Z)\) for some function \(f\). The change
   of variables theorem tells you exactly how to get it.
 </p>
 
@@ -228,18 +228,18 @@ footer{
 
 <div class="formula compact">
 \[
-p_X(x)\geq 0\ \ \forall x,
+p_Z(z)\geq 0\ \ \forall z,
 \qquad
-\int_{-\infty}^{\infty}p_X(x)\,dx=1.
+\int_{-\infty}^{\infty}p_Z(z)\,dz=1.
 \]
 </div>
 
 <div class="callout warning">
 <strong>The tempting but wrong shortcut:</strong>
 <p>
-  It's natural to guess that if \(Y=2X\), then
-  \(p_Y(y{=}2)=p_X(x{=}1)\) - just plug the corresponding \(x\) value
-  straight into \(p_X\). This is <strong>wrong</strong>. Stretching or
+  It's natural to guess that if \(X=2Z\), then
+  \(p_X(x{=}2)=p_Z(z{=}1)\) - just plug the corresponding \(z\) value
+  straight into \(p_Z\). This is <strong>wrong</strong>. Stretching or
   squeezing a variable changes how "spread out" its probability mass is,
   and a density has to account for that, not just relabel the axis.
 </p>
@@ -250,18 +250,18 @@ p_X(x)\geq 0\ \ \forall x,
 <h2>3. A Worked 1D Example</h2>
 
 <p>
-  Here's why the naive shortcut fails. Suppose \(A\) is uniform, with
-  density \(p_A(a)=0.5\) over the interval \([0,2]\) — a flat rectangle of
+  Here's why the naive shortcut fails. Suppose \(Z\) is uniform, with
+  density \(p_Z(z)=0.5\) over the interval \([0,2]\) - a flat rectangle of
   height 0.5 and width 2, so the total area (total probability) is
   \(0.5\times2=1\).
 </p>
 
 <p>
-  Now transform it with \(y=a/4\), squeezing the interval \([0,2]\) down
+  Now transform it with \(y=z/4\), squeezing the interval \([0,2]\) down
   to \([0,0.5]\). For this to still be a valid density, the area still has
-  to equal 1 — but the width just shrank by a factor of 4. So the
+  to equal 1 - but the width just shrank by a factor of 4. So the
   <strong>height has to grow by a factor of 4</strong> to compensate:
-  \(p_A(a)=2\) over \([0,0.5]\).
+  \(p_Z(z)=2\) over \([0,0.5]\).
 </p>
 
 <div style="margin:24px 0;">
@@ -270,24 +270,24 @@ p_X(x)\geq 0\ \ \forall x,
     <rect x="30" y="20" width="290" height="190" fill="#fafbfc" stroke="#dfe4e9" rx="8"/>
     <line x1="30" y1="180" x2="320" y2="180" stroke="#596572" stroke-width="1.2"/>
     <line x1="30" y1="180" x2="30" y2="30" stroke="#596572" stroke-width="1.2"/>
-    <text x="175" y="200" text-anchor="middle" font-size="12" fill="#4d5965">a</text>
+    <text x="175" y="200" text-anchor="middle" font-size="12" fill="#4d5965">z</text>
     <text x="20" y="105" text-anchor="middle" font-size="12" fill="#4d5965" transform="rotate(-90 20 105)">density</text>
     <rect x="30" y="140" width="230" height="40" fill="#c0392b" opacity="0.35" stroke="#c0392b" stroke-width="1.5"/>
-    <text x="145" y="130" text-anchor="middle" font-size="13" fill="#c0392b">p_A(a) = 0.5</text>
+    <text x="145" y="130" text-anchor="middle" font-size="13" fill="#c0392b">p_Z(z) = 0.5</text>
     <text x="30" y="200" font-size="11" fill="#4d5965">0.0</text>
     <text x="255" y="200" font-size="11" fill="#4d5965">2.0</text>
     <text x="175" y="45" text-anchor="middle" font-size="13" font-weight="700" fill="#37434f">Before</text>
 
     <text x="345" y="130" text-anchor="middle" font-size="20" fill="#69778a">&#8594;</text>
-    <text x="345" y="150" text-anchor="middle" font-size="11" fill="#69778a">y = a/4</text>
+    <text x="345" y="150" text-anchor="middle" font-size="11" fill="#69778a">x = z/4</text>
 
     <!-- after panel -->
     <rect x="380" y="20" width="290" height="190" fill="#fafbfc" stroke="#dfe4e9" rx="8"/>
     <line x1="380" y1="180" x2="670" y2="180" stroke="#596572" stroke-width="1.2"/>
     <line x1="380" y1="180" x2="380" y2="30" stroke="#596572" stroke-width="1.2"/>
-    <text x="525" y="200" text-anchor="middle" font-size="12" fill="#4d5965">y</text>
+    <text x="525" y="200" text-anchor="middle" font-size="12" fill="#4d5965">x</text>
     <rect x="380" y="40" width="58" height="140" fill="#c0392b" opacity="0.35" stroke="#c0392b" stroke-width="1.5"/>
-    <text x="480" y="60" text-anchor="middle" font-size="13" fill="#c0392b">p_A(a) = 2</text>
+    <text x="480" y="60" text-anchor="middle" font-size="13" fill="#c0392b">p_X(x) = 2</text>
     <text x="380" y="200" font-size="11" fill="#4d5965">0.0</text>
     <text x="425" y="200" font-size="11" fill="#4d5965">0.5</text>
     <text x="525" y="45" text-anchor="middle" font-size="13" font-weight="700" fill="#37434f">After transform</text>
@@ -297,9 +297,12 @@ p_X(x)\geq 0\ \ \forall x,
 <div class="callout intuition">
 <strong>The rule that makes this work:</strong>
 <p>
-  The <strong>probability mass</strong> between any two points has to stay
-  the same after the transform, so that the total area under the curve
-  still integrates to 1. Squeeze the axis, and the density has to rise to
+  The total area under the curve
+  still integrates to 1 after transformation. \[
+  \int_{-\infty}^{\infty}p_Z(z)\,dz=1=
+  \int_{-\infty}^{\infty}p_X(x)\,dx=1.
+  \]
+  Squeeze the axis, and the density has to rise to
   compensate; stretch the axis, and the density has to fall.
 </p>
 </div>
