@@ -156,30 +156,47 @@ footer{
   <h1>Normalizing Flows</h1>
   <p class="subtitle">
     How a chain of simple, invertible transformations turns a plain
-    Gaussian into a complicated data distribution — and lets you compute
+    Gaussian into a complicated data distribution and lets you compute
     its exact likelihood.
   </p>
 </header>
-
+ 
 <section id="intro">
-<h2>1. What Are Normalizing Flows?</h2>
-
+<h2>1. Motivation</h2>
+ 
 <p>
-  Most generative models — GANs, VAEs — are happy to give you samples but
-  can't tell you the exact probability of a given data point. Normalizing
-  flows are unusual: they let you both <strong>sample</strong> and compute
-  an <strong>exact likelihood</strong>, by building the data distribution
-  out of a simple one through a sequence of invertible transformations.
+  We've already seen GANs: generative models that pass a latent variable
+  through a deep network to produce a new sample. GANs are trained on the
+  principle that generated samples should be indistinguishable from real
+  data but that training signal never actually defines a
+  <strong>distribution</strong> over the data. As a result, there's no
+  straightforward way to ask a GAN "how probable is this specific example
+  under the model?"
+</p>
+<p>
+  VAEs get a little closer, but not all the way there. They do define a
+  distribution over the data - just not one whose probability you can
+  actually compute. Instead of the true likelihood, training only
+  optimizes the <strong>ELBO</strong>, a lower bound on it. So a VAE can't
+  answer "how probable is this specific example?" either - only "here's a
+  bound on how probable it might be."
+</p>
+ 
+<p>
+  Normalizing flows fix exactly this gap. They let you both
+  <strong>sample</strong> and compute an <strong>exact likelihood</strong>
+  for any given data point, by building the data distribution out of a
+  simple one through a sequence of invertible transformations.
 </p>
 
 <div class="callout intuition">
 <strong>The core idea:</strong>
 <p>
-  Start with something easy to sample from and easy to score — a standard
+  Start with something easy to sample from and easy to score - a standard
   Gaussian \(z\sim\mathcal{N}(0,I)\). Pass it through an invertible
   function \(f\) to get \(x=f(z)\). If you can track exactly how much
   \(f\) stretches or squeezes space at every point, you can convert the
-  simple density of \(z\) into the exact density of \(x\) — no
+  simple density of \(z\) into the exact density of \(x\) - no
   approximation required.
 </p>
 </div>
