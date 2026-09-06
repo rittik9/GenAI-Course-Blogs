@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Normalizing Flows — Generative AI Course</title>
+<title>Normalizing Flows - Generative AI Course</title>
 
 <script>
 window.MathJax = {
@@ -799,16 +799,174 @@ p(z)=\frac{1}{(2\pi)^{D/2}}\exp\!\left(-\tfrac12 z^\top z\right)
 </p>
 
 <div class="key-result">
-<strong>The normalizing flow log-likelihood:</strong>
-<div class="formula compact">
-\[
-\log p_X(x) = \log p_{Z_0}(z_0) + \sum_{n=1}^{N}\log\left|\det\!\left(\frac{\partial f_n^{-1}(z_n)}{\partial z_n}\right)\right|.
-\]
-</div>
-<p>
-  Training maximizes this quantity directly - an <strong>exact</strong>
-  log-likelihood, with no approximation or lower bound involved.
-</p>
+  <strong>The normalizing flow log-likelihood:</strong>
+
+  <p>
+    Consider a sequence of invertible transformations
+    \(f_1, f_2, \ldots, f_N\), which maps the data \(x\) to a
+    latent variable \(z_0\):
+  </p>
+
+  <div class="formula compact">
+    \[
+    z_0 = f_1^{-1}\circ f_2^{-1}\circ\cdots\circ f_N^{-1}(x).
+    \]
+  </div>
+
+  <p>
+    Applying the change-of-variables formula to the first transformation,
+  we have
+  </p>
+
+  <div class="formula compact">
+    \[
+    p_X(x)
+    =
+    p_{Z_{N-1}}(z_{N-1})
+    \left|
+    \det\left(
+    \frac{\partial f_N^{-1}(z_N)}
+         {\partial z_N}
+    \right)
+    \right|.
+    \]
+  </div>
+
+  <p>
+    Applying the same transformation repeatedly to the remaining
+    flow steps gives
+  </p>
+
+  <div class="formula compact">
+    \[
+    \begin{aligned}
+    \log p_X(x)
+    &=
+    \log p_{Z_0}(z_0)
+    +
+    \log\left|
+    \det\left(
+    \frac{\partial f_1^{-1}(z_1)}
+         {\partial z_1}
+    \right)
+    \right|
+    \\
+    &\quad+
+    \log\left|
+    \det\left(
+    \frac{\partial f_2^{-1}(z_2)}
+         {\partial z_2}
+    \right)
+    \right|
+    + \cdots
+    +
+    \log\left|
+    \det\left(
+    \frac{\partial f_N^{-1}(z_N)}
+         {\partial z_N}
+    \right)
+    \right|.
+    \end{aligned}
+    \]
+  </div>
+
+  <p>
+    Therefore, the log-likelihood can be written compactly as
+  </p>
+
+  <div class="formula">
+    \[
+    \boxed{
+    \log p_X(x)
+    =
+    \log p_{Z_0}(z_0)
+    +
+    \sum_{n=1}^{N}
+    \log\left|
+    \det\left(
+    \frac{\partial f_n^{-1}(z_n)}
+         {\partial z_n}
+    \right)
+    \right|
+    }
+    \]
+  </div>
+
+  <p>
+    Here, \(z_n\) denotes the intermediate representation at the
+    \(n\)-th flow step. The first term,
+    \(\log p_{Z_0}(z_0)\), is the log-probability of the final latent
+    representation under the simple base distribution, while the
+    summation accounts for the volume changes introduced by each
+    invertible transformation.
+  </p>
+
+  <h4>Training: Maximizing likelihood</h4>
+
+  <p>
+    During training, we want the model to assign a high probability to
+    the observed training data. Hence, we maximize the log-likelihood:
+  </p>
+
+  <div class="formula compact">
+    \[
+    \hat{\phi}
+    =
+    \arg\max_{\phi}
+    \sum_{i=1}^{I}
+    \log p_X(x_i;\phi).
+    \]
+  </div>
+
+  <p>
+    In practice, however, optimization algorithms are typically
+    formulated as <strong>minimization</strong> problems. Therefore,
+    we minimize the negative log-likelihood (NLL):
+  </p>
+
+  <div class="formula compact">
+    \[
+    \boxed{
+    \mathcal{L}_{\mathrm{NLL}}
+    =
+    -\frac{1}{I}
+    \sum_{i=1}^{I}
+    \log p_X(x_i;\phi)
+    }
+    \]
+  </div>
+
+  <p>
+    Substituting the normalizing-flow log-likelihood gives
+  </p>
+
+  <div class="formula compact">
+    \[
+    \mathcal{L}_{\mathrm{NLL}}
+    =
+    -\frac{1}{I}
+    \sum_{i=1}^{I}
+    \left[
+    \log p_{Z_0}(z_{0,i})
+    +
+    \sum_{n=1}^{N}
+    \log\left|
+    \det\left(
+    \frac{\partial f_n^{-1}(z_{n,i})}
+         {\partial z_{n,i}}
+    \right)
+    \right|
+    \right].
+    \]
+  </div>
+
+  <p>
+    Thus, <strong>maximizing the log-likelihood is equivalent to
+    minimizing the negative log-likelihood</strong>. This gives us an
+    exact and tractable training objective because both the base
+    distribution and the Jacobian determinants can be evaluated
+    explicitly.
+  </p>
 </div>
 </section>
 
@@ -817,7 +975,7 @@ p(z)=\frac{1}{(2\pi)^{D/2}}\exp\!\left(-\tfrac12 z^\top z\right)
 
 <p>
   Notice the formula above runs in the <strong>inverse</strong> direction
-  — from data \(x=z_N\) back down to \(z_0\), through
+  - from data \(x=z_N\) back down to \(z_0\), through
   \(f_N^{-1},f_{N-1}^{-1},\ldots,f_1^{-1}\). That asymmetry defines two
   distinct passes through the model:
 </p>
@@ -827,7 +985,7 @@ p(z)=\frac{1}{(2\pi)^{D/2}}\exp\!\left(-\tfrac12 z^\top z\right)
 <h3>Training (normalizing direction)</h3>
 <p>
   We go from the data distribution to the simple Gaussian, using the
-  inverse functions, and maximize \(\log p_X(x)\) — equivalently,
+  inverse functions, and maximize \(\log p_X(x)\) - equivalently,
   minimize \(-\log p_X(x)\), the negative log-likelihood of the data.
   This is where the name <strong>normalizing flow</strong> comes from.
 </p>
@@ -836,7 +994,7 @@ p(z)=\frac{1}{(2\pi)^{D/2}}\exp\!\left(-\tfrac12 z^\top z\right)
 <h3>Sampling (generative direction)</h3>
 <p>
   We draw \(z_0\sim\mathcal{N}(0,I)\) and run it through the
-  <strong>forward</strong> pass — \(f_1,f_2,\ldots,f_N\) — to produce a new
+  <strong>forward</strong> pass - \(f_1,f_2,\ldots,f_N\) - to produce a new
   data sample \(x\). This direction is used for inference/generation.
 </p>
 </div>
@@ -858,7 +1016,7 @@ p(z)=\frac{1}{(2\pi)^{D/2}}\exp\!\left(-\tfrac12 z^\top z\right)
 <li>The <strong>determinant of its Jacobian</strong> must be cheap to
   compute.</li>
 <li>Its output \(z_n\) must have the <strong>same dimensionality</strong>
-  as the input \(x\) — e.g. if \(x\in\mathbb{R}^{3\times256\times256}\),
+  as the input \(x\) - e.g. if \(x\in\mathbb{R}^{3\times256\times256}\),
   every intermediate \(z_n\) lives in that same space.</li>
 </ul>
 
@@ -921,7 +1079,7 @@ y_{d+1:D} &= x_{d+1:D}\odot\exp\big(s(x_{1:d})\big) + t(x_{1:d})
 
 <p>
   Because \(s\) and \(t\) only ever see \(x_{1:d}\) as input, inverting
-  this transformation is simple algebra — no matrix inversion needed:
+  this transformation is simple algebra - no matrix inversion needed:
 </p>
 
 <div class="formula">
@@ -956,7 +1114,7 @@ I_d & 0\\
 <p>
   The top-left block is the identity \(I_d\), since the first part of the
   output is exactly the first part of the input. That structure makes
-  this a <strong>lower-triangular matrix</strong> — and the determinant of
+  this a <strong>lower-triangular matrix</strong> - and the determinant of
   a triangular matrix is just the product of its diagonal entries:
 </p>
 
@@ -969,7 +1127,7 @@ I_d & 0\\
 </div>
 <p>
   We never had to differentiate the scale or shift networks themselves to
-  get this determinant — only sum up the scale network's own output. That
+  get this determinant - only sum up the scale network's own output. That
   means \(s\) and \(t\) are free to be arbitrarily deep, complex neural
   networks; none of that complexity ever leaks into the cost of computing
   the Jacobian.
@@ -1006,7 +1164,7 @@ I_d & 0\\
 <p>
   Since each forward pass leaves \(x_{1:d}\) completely unchanged, that
   same slice of the data would stay frozen through the <em>entire</em>
-  chain if every layer split the input the same way — clearly not
+  chain if every layer split the input the same way - clearly not
   desirable. RealNVP's fix is to <strong>alternate which half is held
   fixed</strong> from one layer to the next, so every dimension gets
   transformed by roughly half of the layers.
@@ -1042,13 +1200,13 @@ I_d & 0\\
 </li>
 <li>
   A usable transformation needs a Jacobian determinant that's cheap to
-  compute — for general functions, this is an expensive
+  compute - for general functions, this is an expensive
   \(n\times n\) determinant.
 </li>
 <li>
   <strong>RealNVP's affine coupling layer</strong> sidesteps this by
   leaving half the input untouched and using it to scale and shift the
-  other half, which makes the Jacobian triangular — its determinant is
+  other half, which makes the Jacobian triangular - its determinant is
   just the product of the diagonal, with no restriction on how complex
   the scale/shift networks themselves are.
 </li>
@@ -1059,7 +1217,7 @@ I_d & 0\\
 <p>
   Normalizing flows trade some architectural freedom (every layer must be
   invertible) for something GANs and VAEs don't offer: an
-  <strong>exact</strong>, tractable likelihood — and the ability to sample
+  <strong>exact</strong>, tractable likelihood - and the ability to sample
   and evaluate density with the very same model.
 </p>
 </div>
