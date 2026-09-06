@@ -561,12 +561,19 @@ p_Z(z)\geq 0\ \ \forall z,
       derivative:
     </p>
      
-    <div class="formula">
-    \[
-    p_Z(z)\,dA_z = p_X(x)\,dA_x
-    \quad\Longrightarrow\quad
-    p_X(x) = p_Z(z)\left|\det J_f(z)\right|^{-1}.
-    \]
+    <div class="formula"> 
+      \[ 
+      \text{We know,}\qquad 
+      p_Z(z)\,dA_z = p_X(x)\,dA_x,\quad
+      dA_x = \left|\det J_f(z)\right|\,dA_z 
+      \] 
+     
+      \[ 
+      \therefore\quad 
+      p_X(x) 
+      = 
+      p_Z(z)\left|\det J_f(z)\right|^{-1}. 
+      \] 
     </div>
      
     <p>
@@ -596,28 +603,20 @@ p_Z(z)\geq 0\ \ \forall z,
       <strong>Useful shortcut: relating the forward and inverse Jacobians</strong>
     
       <p>
-        We know that the forward transformation maps \(z\) to \(x\):
+        The forward transformation maps \(z\) to \(x\), while its inverse maps
+        \(x\) back to \(z\):
       </p>
     
       <div class="formula compact">
         \[
-        x=f(z).
-        \]
-      </div>
-    
-      <p>
-        Therefore, the inverse transformation maps \(x\) back to \(z\):
-      </p>
-    
-      <div class="formula compact">
-        \[
+        x=f(z),
+        \qquad
         z=f^{-1}(x).
         \]
       </div>
     
       <p>
-        By definition, applying the forward transformation and then its inverse
-        must return the original point:
+        Since applying \(f\) followed by \(f^{-1}\) returns the original point,
       </p>
     
       <div class="formula compact">
@@ -627,73 +626,58 @@ p_Z(z)\geq 0\ \ \forall z,
       </div>
     
       <p>
-        Now differentiate both sides with respect to \(z\). In multiple
-        dimensions, the derivative is represented by a Jacobian matrix.
-        Applying the chain rule gives:
+        Differentiate both sides with respect to \(z\). Using the multivariable
+        chain rule:
       </p>
     
-      <div class="formula">
+      <div class="formula compact">
+        \[
+        \frac{d}{dz}\,f^{-1}(f(z))
+        =
+        \frac{d}{dz}\,z
+        =
+        I.
+        \]
+      </div>
+    
+      <div class="formula compact">
         \[
         J_{f^{-1}}(f(z))\,J_f(z)=I.
         \]
       </div>
     
       <p>
-        Since \(x=f(z)\), we can write this as:
+        Since \(x=f(z)\),
       </p>
     
       <div class="formula compact">
         \[
-        J_{f^{-1}}(x)\,J_f(z)=I.
+        J_{f^{-1}}(x)\,J_f(z)=I
+        \quad\Longrightarrow\quad
+        \boxed{J_{f^{-1}}(x)=J_f(z)^{-1}}.
         \]
       </div>
     
       <p>
-        Therefore, the Jacobian of the inverse transformation is simply the
-        inverse of the forward Jacobian:
-      </p>
-    
-      <div class="formula">
-        \[
-        \boxed{
-        J_{f^{-1}}(x)=J_f(z)^{-1}
-        }
-        \]
-      </div>
-    
-      <p>
-        Taking the determinant of both sides:
+        Taking determinants and using
+        \(\det(A^{-1})=\det(A)^{-1}\):
       </p>
     
       <div class="formula compact">
         \[
         \det J_{f^{-1}}(x)
         =
-        \det\left(J_f(z)^{-1}\right).
-        \]
-      </div>
-    
-      <p>
-        Using the identity
-        \(\det(A^{-1})=\det(A)^{-1}\), we obtain:
-      </p>
-    
-      <div class="formula">
-        \[
-        \boxed{
-        \det J_{f^{-1}}(x)
+        \det\!\left(J_f(z)^{-1}\right)
         =
-        \frac{1}{\det J_f(z)}
-        }
+        \frac{1}{\det J_f(z)}.
         \]
       </div>
     
       <p>
-        Taking the absolute value, which is required for probability densities,
-        gives the useful relationship:
+        Therefore,
       </p>
     
-      <div class="formula">
+      <div class="formula compact">
         \[
         \boxed{
         \left|\det J_{f^{-1}}(x)\right|
@@ -704,18 +688,17 @@ p_Z(z)\geq 0\ \ \forall z,
       </div>
     
       <p>
-        This means we do not need to explicitly compute the inverse Jacobian.
-        We can compute whichever Jacobian determinant is easier and take its
-        reciprocal.
+        So, instead of explicitly computing the inverse Jacobian, we can compute
+        whichever Jacobian determinant is easier and take its reciprocal.
       </p>
     
       <div class="callout intuition">
         <strong>Why this is useful in normalizing flows:</strong>
         <p>
-          The density formula is naturally written using the inverse
-          transformation, but flow architectures are often designed so that
-          the <strong>forward Jacobian determinant</strong> is much easier to
-          compute. The identity above lets us switch between the two:
+          Although the density formula is naturally written using the inverse
+          transformation, flow architectures are designed so that the
+          <strong>forward Jacobian determinant</strong> is often much easier
+          to compute. Thus,
         </p>
     
         <div class="formula compact">
