@@ -925,7 +925,7 @@
           +
           D_{\mathrm{KL}}
           \left(
-         q_\phi(z\mid x)\,\|\,p_\theta(z\mid x)
+         q_\phi(z\mid x)\,\|\,p_\theta(z)
           \right)
           }
         \]
@@ -938,14 +938,14 @@
         \left(
           q_\phi(z\mid x)
           \,\|\, 
-          p_\theta(z\mid x)
+          p_\theta(z)
         \right)
         \geq 0,}
       \]
       the ELBO is guaranteed to be a lower bound on the log-likelihood. The bound
       becomes <strong>tight</strong> when
       \[  \boxed{
-        q_\phi(z\mid x)=p_\theta(z\mid x),}
+        q_\phi(z\mid x)=p_\theta(z),}
       \]
       because in that case
       \[  \boxed{
@@ -953,7 +953,7 @@
         \left(
           q_\phi(z\mid x)
           \,\|\, 
-          p_\theta(z\mid x)
+          p_\theta(z)
         \right)
         =0.}
       \]
