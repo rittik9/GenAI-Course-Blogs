@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Denoising Diffusion Probabilistic Models — From Hierarchical VAEs to Denoising</title>
+
+  <!-- MathJax for mathematical notation -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+      --text: #20242a;
+      --muted: #606873;
+      --border: #e3e6ea;
+      --accent: #3f5f8f;
+      --accent-soft: #eef3f9;
+      --green-soft: #eef7f2;
+      --green: #2e6b4f;
+      --yellow-soft: #fff8e8;
+      --yellow: #8a6718;
+      --code: #f4f5f7;
+      --shadow: 0 8px 28px rgba(20, 30, 45, 0.07);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", sans-serif;
+      line-height: 1.72;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 850px);
+      gap: 38px;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 24px 80px;
+    }
+
+    aside {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+    }
+
+    .course-label {
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    aside h2 {
+      font-size: 1.15rem;
+      margin: 0 0 18px;
+      line-height: 1.3;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 10px;
+      margin: 2px 0;
+      border-radius: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+
+    nav a:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    main {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 54px 62px 70px;
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+      margin: 0 0 16px;
+      color: #1e2a3a;
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      line-height: 1.25;
+      margin: 54px 0 18px;
+      color: #25344a;
+      scroll-margin-top: 24px;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 34px 0 12px;
+      color: #33445c;
+      scroll-margin-top: 24px;
+    }
+
+    p { margin: 12px 0 18px; }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 16px 20px;
+      border-radius: 0 10px 10px 0;
+      margin: 22px 0;
+    }
+
+    .intuition {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .warning {
+      border-left-color: var(--yellow);
+      background: var(--yellow-soft);
+    }
+
+    .formula {
+      background: #fafbfc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 14px;
+      margin: 22px 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .key-result {
+      border: 1.5px solid #cfd8e5;
+      background: #fbfcfe;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 26px 0;
+    }
+
+    .key-result strong {
+      color: var(--accent);
+    }
+
+    ul, ol {
+      padding-left: 25px;
+    }
+
+    li { margin: 7px 0; }
+
+    code {
+      background: var(--code);
+      padding: 2px 5px;
+      border-radius: 5px;
+      font-size: 0.92em;
+    }
+
+    .diagram {
+      margin: 28px 0;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fcfcfd;
+      overflow-x: auto;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-width: 620px;
+    }
+
+    .box {
+      border: 1.5px solid #9eabbc;
+      border-radius: 10px;
+      padding: 14px 18px;
+      min-width: 135px;
+      text-align: center;
+      background: white;
+    }
+
+    .box small {
+      display: block;
+      color: var(--muted);
+      margin-top: 5px;
+      font-size: 0.8rem;
+    }
+
+    .box.noise {
+      background: repeating-linear-gradient(
+        45deg, #f4f6f9, #f4f6f9 3px, #ffffff 3px, #ffffff 6px);
+    }
+
+    .box.learned {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .arrow {
+      color: #69778a;
+      font-size: 1.5rem;
+    }
+
+    .diagram-caption {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 14px 0 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin: 22px 0;
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 18px;
+      background: #fff;
+      min-width: 0;
+      overflow-x: auto;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 1.05rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 22px 0;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f5f7fa;
+      color: #354256;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .takeaways {
+      background: #f7f9fc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 30px;
+    }
+
+    .algorithm {
+      border: 1.5px solid #cfd8e5;
+      border-radius: 12px;
+      background: #fbfcfe;
+      padding: 18px 24px;
+      margin: 26px 0;
+    }
+
+    .algorithm .algo-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .algorithm ol {
+      margin: 0;
+    }
+
+    footer {
+      margin-top: 55px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .big-picture {
+      padding: 24px 28px;
+    }
+
+    .big-picture h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        display: block;
+        padding: 18px 12px 45px;
+      }
+
+      aside {
+        position: static;
+        margin-bottom: 16px;
+      }
+
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      nav a {
+        background: #fff;
+        border: 1px solid var(--border);
+      }
+
+      main {
+        padding: 34px 24px 48px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .big-picture {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid, .grid.three { grid-template-columns: 1fr; }
+      h2 { font-size: 1.4rem; }
+      main { border-radius: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+
+  <aside>
+    <div class="course-label">Generative AI</div>
+    <h2>Denoising Diffusion Probabilistic Models</h2>
+    <nav aria-label="Table of contents">
+      <a href="#hvae">1. DDPM as a Hierarchical VAE</a>
+      <a href="#notation">2. Notation</a>
+      <a href="#forward">3. Forward Process</a>
+      <a href="#reverse">4. Reverse Process</a>
+      <a href="#elbo">5. ELBO for DDPM</a>
+      <a href="#simplify">6. Simplifying the ELBO</a>
+      <a href="#three-terms">7. The Three Terms</a>
+      <a href="#marginal">8. Closed Form of q(xₜ | x₀)</a>
+      <a href="#posterior">9. Known Denoising Posterior</a>
+      <a href="#kl">10. KL as Regression</a>
+      <a href="#final-elbo">11. Final ELBO</a>
+      <a href="#network">12. The Denoising Network</a>
+      <a href="#x0-pred">13. Predicting x₀</a>
+      <a href="#training">14. Training</a>
+      <a href="#sampling">15. Sampling</a>
+      <a href="#summary">16. Summary</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header>
+      <div class="eyebrow">Generative AI Course · Diffusion Models</div>
+      <h1>Denoising Diffusion Probabilistic Models</h1>
+    </header>
+
+    <div class="callout intuition big-picture">
+      <h3>The Big Picture</h3>
+
+      <p>
+        A <strong>Denoising Diffusion Probabilistic Model (DDPM)</strong> is a
+        <strong>latent-variable generative model</strong> that can be seen as a
+        special case of a <strong>hierarchical VAE</strong>. Its encoder is not
+        learned: it slowly destroys a data point by adding Gaussian noise over
+        many steps until only noise is left. Its decoder is learned: it undoes
+        the corruption one small step at a time.
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x_0\)
+            <small>data</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(x_1\)
+            <small>noisy data</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(x_2\)
+            <small>noisy-noisy data</small>
+          </div>
+          <div class="arrow">→ ⋯ →</div>
+          <div class="box noise">
+            \(x_T\)
+            <small>“noise only”</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Forward (encoding) process: fixed, adds noise.
+          Reverse (decoding) process \(x_T\to x_{T-1}\to\cdots\to x_0\): learned, removes noise.
+        </p>
+      </div>
+
+      <p>
+        Once the reverse process is learned, generating a new sample is easy:
+        draw pure noise \(x_T\sim\mathcal{N}(0,I)\) and denoise it step by step
+        until a data point \(x_0\) appears.
+      </p>
+    </div>
+
+    <section id="hvae">
+      <h2>1. DDPM as a Special Case of a Hierarchical VAE</h2>
+
+      <p>
+        Suppose we are given a dataset
+      </p>
+
+      <div class="formula">
+        \[
+          \mathcal{D} = \{x^{(i)}\}_{i=1}^{N},
+          \qquad
+          x^{(i)} \sim p_X(x)
+          \quad \text{(data distribution)}.
+        \]
+      </div>
+
+      <p>
+        The goal of generative AI is to <strong>learn to sample from
+        \(p_X\)</strong>. DDPMs are latent-variable generative models that can
+        be seen as a special case of <strong>hierarchical VAEs</strong>.
+      </p>
+
+      <h3>Recall: the VAE</h3>
+
+      <p>
+        In a VAE there is a single latent space. The encoder maps data to a
+        latent variable and the decoder maps it back:
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x\)
+            <small>data</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(z\)
+            <small>latent</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\hat{x}\)
+            <small>data</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Encoder \(q_\phi(z\mid x)\) &nbsp;·&nbsp; Decoder \(p_\theta(x\mid z)\)
+        </p>
+      </div>
+
+      <h3>Hierarchical VAE</h3>
+
+      <p>
+        In a hierarchical VAE (HVAE) there are <strong>multiple latent
+        spaces</strong>, stacked one after another:
+      </p>
+
+      <div class="formula">
+        \[
+          \underbrace{x \to z_1 \to z_2 \to \cdots \to z_T}_{\text{encoding}}
+          \qquad\qquad
+          \underbrace{z_T \to z_{T-1} \to \cdots \to z_1 \to x}_{\text{decoding}}
+        \]
+      </div>
+
+      <h3>What makes a DDPM special</h3>
+
+      <p>
+        A DDPM is an HVAE with the following properties:
+      </p>
+
+      <ol type="a">
+        <li>
+          <strong>There are multiple latent spaces</strong>
+          \(z_1, z_2, \ldots, z_T\).
+        </li>
+        <li>
+          <strong>The dimensionality of every latent space equals that of the
+          data space:</strong>
+          \(\dim(z_t) = \dim(x)\) for all \(t\).
+        </li>
+        <li>
+          <strong>The encoding procedure is fixed and not learnable</strong>,
+          unlike in a VAE.
+        </li>
+      </ol>
+
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>VAE</th>
+            <th>DDPM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Encoder</td>
+            <td>\(q_\phi(z\mid x)\) is a neural network that is learned</td>
+            <td>\(q(z\mid x)\) is fixed and not learnable</td>
+          </tr>
+          <tr>
+            <td>What is learned</td>
+            <td>Both encoding and decoding</td>
+            <td>Only decoding</td>
+          </tr>
+          <tr>
+            <td>Latent dimension</td>
+            <td>Usually much smaller than \(\dim(x)\)</td>
+            <td>Same as \(\dim(x)\)</td>
+          </tr>
+          <tr>
+            <td>Number of latent spaces</td>
+            <td>One</td>
+            <td>\(T\)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="notation">
+      <h2>2. DDPM Notation</h2>
+
+      <p>
+        The DDPM literature uses a slightly different notation from the VAE:
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Data</h3>
+          <p>\(x_0\): a data point</p>
+          <p class="small">Previously written as \(x\).</p>
+        </div>
+        <div class="card">
+          <h3>Latents</h3>
+          <p>\(x_1, x_2, \ldots, x_T\): latent vectors</p>
+          <p class="small">Previously written as \(z_1, z_2, \ldots, z_T\).</p>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <strong>Don't be confused:</strong>
+        here the subscript is a <em>time step</em>, not a data index.
+        \(x_1, x_2, \ldots\) are successive noisy versions of the same data
+        point \(x_0\), not different points in the dataset. We also write
+        \(x_{1:T} = (x_1, \ldots, x_T)\) and \(x_{0:T} = (x_0, x_1, \ldots, x_T)\).
+      </div>
+    </section>
+
+    <section id="forward">
+      <h2>3. The Encoding / Forward Process</h2>
+
+      <div class="formula">
+        \[
+          \underbrace{x_0}_{\text{data point}}
+          \;\longrightarrow\;
+          \underbrace{x_1 \longrightarrow x_2 \longrightarrow \cdots \longrightarrow x_T}_{\text{latent vectors corresponding to } x_0}
+        \]
+      </div>
+
+      <p>
+        All of these live in the same space:
+        \(\dim(x_t) = \dim(x_0) = \mathbb{R}^d\) for all \(t\). The number of
+        steps \(T\) is a hyperparameter.
+      </p>
+
+      <h3>3.1 Defining the forward process</h3>
+
+      <p>
+        The forward process mixes the previous state with a bit of fresh
+        Gaussian noise at each step:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          x_1 &= \sqrt{\alpha_1}\,x_0 + \sqrt{1-\alpha_1}\,\epsilon_1,
+          &\epsilon_1 &\sim \mathcal{N}(0,I) \\
+          x_2 &= \sqrt{\alpha_2}\,x_1 + \sqrt{1-\alpha_2}\,\epsilon_2,
+          &\epsilon_2 &\sim \mathcal{N}(0,I) \\
+          &\;\;\vdots \\
+          x_t &= \sqrt{\alpha_t}\,x_{t-1} + \sqrt{1-\alpha_t}\,\epsilon_t,
+          &\epsilon_t &\sim \mathcal{N}(0,I)
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        where \(\alpha_1, \ldots, \alpha_T \in [0,1]\) are <strong>fixed
+        scalars</strong>. Nothing here is learned.
+      </p>
+
+      <div class="key-result">
+        <strong>Forward process</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            x_t = \sqrt{\alpha_t}\,x_{t-1} + \sqrt{1-\alpha_t}\,\epsilon_t,
+            \qquad \epsilon_t \sim \mathcal{N}(0,I)
+            }
+            \tag{1}
+          \]
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(\sqrt{\alpha_1}\,x_0\)
+            <small>scaled image</small>
+          </div>
+          <div class="arrow">+</div>
+          <div class="box noise">
+            \(\sqrt{1-\alpha_1}\,\epsilon_1\)
+            <small>noise</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(x_1\)
+            <small>slightly noisy</small>
+          </div>
+          <div class="arrow">→ ⋯ →</div>
+          <div class="box noise">
+            \(x_T\)
+            <small>pure noise</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Data → add noise → noisy data → add noise → noisy-noisy data → ⋯ → “noise only”
+        </p>
+      </div>
+
+      <h3>3.2 The forward process is a Markov chain</h3>
+
+      <p>
+        Eq. (1) defines a <strong>first-order Markov chain</strong>: a sequence of
+        random variables \(x_0, x_1, \ldots, x_T\) such that each one depends
+        only on the one immediately before it,
+      </p>
+
+      <div class="formula">
+        \[
+          q(x_t \mid x_{t-1}, x_{t-2}, \ldots, x_0) = q(x_t \mid x_{t-1}).
+        \]
+      </div>
+
+      <p>
+        So the forward process can be described as a series of conditional
+        distributions on the latent variables. Since \(x_t\) is a scaled
+        \(x_{t-1}\) plus independent Gaussian noise,
+      </p>
+
+      <div class="key-result">
+        <strong>Conditional forward / encoding distributions</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            q(x_t \mid x_{t-1})
+            =
+            \mathcal{N}\!\left(x_t;\ \sqrt{\alpha_t}\,x_{t-1},\ (1-\alpha_t)\,I\right)
+            }
+          \]
+        </div>
+      </div>
+
+      <p>
+        The noise level is chosen so that, after many steps, all information
+        about \(x_0\) is gone and
+      </p>
+
+      <div class="formula">
+        \[
+          q(x_T) \approx \mathcal{N}(0, I),
+        \]
+      </div>
+
+      <p>
+        the <strong>stationary distribution</strong> of the Markov chain.
+      </p>
+    </section>
+
+    <section id="reverse">
+      <h2>4. The Decoding / Reverse Process: Defining the Model</h2>
+
+      <p>
+        The model is defined through a decoding distribution over the data and
+        all the latents:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x_{0:T})
+          =
+          p_\theta(\underbrace{x_0}_{\text{data}},\ \underbrace{x_1, \ldots, x_T}_{\text{latent variables}})
+          =
+          p(x_T)\prod_{t=1}^{T} p_\theta(x_{t-1}\mid x_t),
+        \]
+      </div>
+
+      <p>
+        where each reverse step is Gaussian:
+      </p>
+
+      <div class="key-result">
+        <strong>Reverse / decoding transitions</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            p_\theta(x_{t-1}\mid x_t)
+            =
+            \mathcal{N}\!\left(x_{t-1};\ \mu_\theta(x_t),\ \Sigma_\theta(x_t)\right),
+            \qquad
+            p(x_T) = \mathcal{N}(0, I)
+            }
+          \]
+        </div>
+      </div>
+
+      <p>
+        \(p_\theta\) defines a latent-variable model with multiple latent
+        variables, just like a VAE defines \(p_\theta(x, z)\), the joint
+        distribution between the data and the latent variables.
+      </p>
+
+      <div class="callout intuition">
+        <strong>Where does this form come from?</strong>
+        The model distribution \(p_\theta\) of a DDPM arises from making the
+        same <strong>first-order Markovian assumption in the reverse
+        direction</strong>, with Gaussian transitions that contain learnable
+        parameters. The mean \(\mu_\theta(x_t)\) and covariance
+        \(\Sigma_\theta(x_t)\) are learned via the ELBO.
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box noise">
+            \(x_T\)
+            <small>\(\mathcal{N}(0,I)\)</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            \(p_\theta(x_{T-1}\mid x_T)\)
+            <small>learned</small>
+          </div>
+          <div class="arrow">→ ⋯ →</div>
+          <div class="box learned">
+            \(p_\theta(x_0\mid x_1)\)
+            <small>learned</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(x_0\)
+            <small>data</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="elbo">
+      <h2>5. ELBO Optimization to Learn the Decoding Parameters</h2>
+
+      <p>
+        Recall that in a VAE, we lower-bound the log-likelihood by introducing
+        the encoder \(q(z\mid x)\):
+      </p>
+
+      <div class="formula">
+        \[
+          \log p_\theta(x)
+          =
+          \log \int p_\theta(x, z)\,dz
+          \;\ge\;
+          \underbrace{
+          \mathbb{E}_{q(z\mid x)}
+          \left[
+            \log \frac{p_\theta(x, z)}{q(z\mid x)}
+          \right]
+          }_{J_\theta(q)\ :\ \text{Evidence Lower Bound (ELBO)}}
+        \]
+      </div>
+
+      <p>
+        A DDPM is the same construction with \(z\) replaced by all the latents
+        \(x_{1:T}\), and the encoder replaced by the fixed forward process:
+      </p>
+
+      <div class="key-result">
+        <strong>ELBO for a DDPM</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            J_\theta(q)
+            =
+            \mathbb{E}_{q(x_{1:T}\mid x_0)}
+            \left[
+              \log
+              \frac{p_\theta(x_0, x_1, \ldots, x_T)}{q(x_1, \ldots, x_T\mid x_0)}
+            \right]
+            =
+            \mathbb{E}_{q(x_{1:T}\mid x_0)}
+            \left[
+              \log
+              \frac{p_\theta(x_{0:T})}{q(x_{1:T}\mid x_0)}
+            \right]
+            }
+          \]
+        </div>
+      </div>
+    </section>
+
+    <section id="simplify">
+      <h2>6. Optimizing the ELBO for a DDPM</h2>
+
+      <h3>6.1 Factorizing the numerator and denominator</h3>
+
+      <p>
+        The numerator comes straight from the model definition:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x_{0:T}) = p(x_T)\prod_{t=1}^{T} p_\theta(x_{t-1}\mid x_t),
+          \qquad p(x_T) = \mathcal{N}(0, I).
+        \]
+      </div>
+
+      <p>
+        Similarly, the denominator follows from the chain rule of probability:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          q(x_{1:T}\mid x_0)
+          &=
+          q(x_1\mid x_0)\,
+          q(x_2\mid x_1, x_0)\,
+          q(x_3\mid x_2, x_1, x_0)
+          \cdots
+          q(x_T\mid x_{T-1}, \ldots, x_0) \\
+          &=
+          \prod_{t=1}^{T} q(x_t\mid x_{t-1})
+          \qquad \text{(the forward / encoding process is first-order Markov)}.
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        Therefore
+      </p>
+
+      <div class="formula">
+        \[
+          J_\theta(q)
+          =
+          \mathbb{E}_{q}
+          \log
+          \left[
+            \frac{p(x_T)\prod_{t=1}^{T} p_\theta(x_{t-1}\mid x_t)}
+                 {\prod_{t=1}^{T} q(x_t\mid x_{t-1})}
+          \right].
+        \]
+      </div>
+
+      <p>
+        Consider the term inside the expectation. Pulling out the \(t=1\)
+        factors,
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          \log
+          \left[
+            \frac{p(x_T)\prod_{t=1}^{T} p_\theta(x_{t-1}\mid x_t)}
+                 {\prod_{t=1}^{T} q(x_t\mid x_{t-1})}
+          \right]
+          &=
+          \log
+          \frac{p(x_T)\,p_\theta(x_0\mid x_1)\prod_{t=2}^{T} p_\theta(x_{t-1}\mid x_t)}
+               {q(x_1\mid x_0)\prod_{t=2}^{T} q(x_t\mid x_{t-1})} \\[6pt]
+          &=
+          \log
+          \frac{p(x_T)\,p_\theta(x_0\mid x_1)}{q(x_1\mid x_0)}
+          +
+          \log
+          \prod_{t=2}^{T}
+          \frac{p_\theta(x_{t-1}\mid x_t)}{q(x_t\mid x_{t-1})}.
+        \end{aligned}
+        \]
+      </div>
+
+      <h3>6.2 Rewriting the denominator with Bayes' rule</h3>
+
+      <p>
+        Consider the denominator in the second term. Because the forward
+        process is first-order Markov, conditioning additionally on \(x_0\)
+        changes nothing, and we can then apply Bayes' rule with three random
+        variables:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          q(x_t\mid x_{t-1})
+          &= q(x_t\mid x_{t-1}, x_0)
+          && \text{(1st-order Markov)} \\[4pt]
+          &=
+          \frac{q(x_{t-1}\mid x_t, x_0)\,q(x_t\mid x_0)}{q(x_{t-1}\mid x_0)}
+          && \text{(Bayes' rule with 3 RVs)}.
+        \end{aligned}
+        \]
+      </div>
+
+      <div class="callout">
+        <strong>What is \(q(x_{t-1}\mid x_t, x_0)\)?</strong>
+        It is the distribution of \(x_{t-1}\), given that the encoding process
+        has landed at \(x_t\) at time \(t\), starting from \(x_0\). It describes
+        how to take one step <em>backwards</em> when we know where the chain
+        started and where it currently is.
+      </div>
+
+      <p>
+        Plugging this expression into the ELBO,
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          &\log
+          \frac{p(x_T)\,p_\theta(x_0\mid x_1)}{q(x_1\mid x_0)}
+          +
+          \log
+          \prod_{t=2}^{T}
+          \frac{p_\theta(x_{t-1}\mid x_t)}{q(x_t\mid x_{t-1})} \\[6pt]
+          &=
+          \log
+          \frac{p(x_T)\,p_\theta(x_0\mid x_1)}{q(x_1\mid x_0)}
+          +
+          \log
+          \prod_{t=2}^{T}
+          \frac{p_\theta(x_{t-1}\mid x_t)\,q(x_{t-1}\mid x_0)}
+               {q(x_{t-1}\mid x_t, x_0)\,q(x_t\mid x_0)} \\[6pt]
+          &=
+          \log
+          \frac{p(x_T)\,p_\theta(x_0\mid x_1)}{q(x_1\mid x_0)}
+          +
+          \log
+          \prod_{t=2}^{T}
+          \frac{p_\theta(x_{t-1}\mid x_t)}{q(x_{t-1}\mid x_t, x_0)}
+          +
+          \log
+          \prod_{t=2}^{T}
+          \frac{q(x_{t-1}\mid x_0)}{q(x_t\mid x_0)}.
+        \end{aligned}
+        \]
+      </div>
+
+      <h3>6.3 The telescoping product</h3>
+
+      <p>
+        The last product telescopes: every numerator cancels the previous
+        denominator,
+      </p>
+
+      <div class="formula">
+        \[
+          \log
+          \prod_{t=2}^{T}
+          \frac{q(x_{t-1}\mid x_0)}{q(x_t\mid x_0)}
+          =
+          \log
+          \frac{q(x_1\mid x_0)\,\cancel{q(x_2\mid x_0)}\cdots}
+               {\cancel{q(x_2\mid x_0)}\,\cancel{q(x_3\mid x_0)}\cdots q(x_T\mid x_0)}
+          =
+          \log
+          \frac{q(x_1\mid x_0)}{q(x_T\mid x_0)}.
+        \]
+      </div>
+
+      <p>
+        The surviving \(q(x_1\mid x_0)\) now cancels with the denominator of
+        the first term:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          &=
+          \log
+          \frac{p(x_T)\,p_\theta(x_0\mid x_1)}{\cancel{q(x_1\mid x_0)}}
+          +
+          \log
+          \prod_{t=2}^{T}
+          \frac{p_\theta(x_{t-1}\mid x_t)}{q(x_{t-1}\mid x_t, x_0)}
+          +
+          \log
+          \frac{\cancel{q(x_1\mid x_0)}}{q(x_T\mid x_0)} \\[6pt]
+          &=
+          \underbrace{
+          \log p_\theta(x_0\mid x_1)
+          +
+          \log \frac{p(x_T)}{q(x_T\mid x_0)}
+          +
+          \sum_{t=2}^{T}
+          \log
+          \frac{p_\theta(x_{t-1}\mid x_t)}{q(x_{t-1}\mid x_t, x_0)}
+          }_{\text{(Term)}}.
+        \end{aligned}
+        \]
+      </div>
+
+      <h3>6.4 Bringing in the outer expectation</h3>
+
+      <p>
+        We now take \(\mathbb{E}_{q(x_{1:T}\mid x_0)}\left[\text{Term}\right]\).
+        Since the sub-terms in (Term) depend only on <em>subsets</em> of
+        \(x_{1:T}\), the outer expectation can be written appropriately, each
+        over only the variables it involves:
+      </p>
+
+      <div class="formula">
+        \[
+          J_\theta(q)
+          =
+          \mathbb{E}_{q(x_1\mid x_0)}
+          \log p_\theta(x_0\mid x_1)
+          +
+          \mathbb{E}_{q(x_T\mid x_0)}
+          \log \frac{p(x_T)}{q(x_T\mid x_0)}
+          +
+          \sum_{t=2}^{T}
+          \mathbb{E}_{q(x_{t-1}, x_t\mid x_0)}
+          \log
+          \frac{p_\theta(x_{t-1}\mid x_t)}{q(x_{t-1}\mid x_t, x_0)}.
+        \]
+      </div>
+
+      <p>
+        For the last term, use the property of conditional expectation to split
+        the joint expectation into two nested ones:
+      </p>
+
+      <div class="formula">
+        \[
+          \mathbb{E}_{q(x_{t-1}, x_t\mid x_0)}\left[\,\cdot\,\right]
+          =
+          \mathbb{E}_{q(x_t\mid x_0)}
+          \;
+          \mathbb{E}_{q(x_{t-1}\mid x_t, x_0)}
+          \left[\,\cdot\,\right].
+        \]
+      </div>
+
+      <p>
+        Rewriting the ELBO with this property, each inner expectation of a log
+        ratio is a negative KL divergence:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          J_\theta(q)
+          &=
+          \mathbb{E}_{q(x_1\mid x_0)}
+          \log p_\theta(x_0\mid x_1)
+          +
+          \mathbb{E}_{q(x_T\mid x_0)}
+          \log \frac{p(x_T)}{q(x_T\mid x_0)} \\
+          &\quad+
+          \sum_{t=2}^{T}
+          \mathbb{E}_{q(x_t\mid x_0)}
+          \mathbb{E}_{q(x_{t-1}\mid x_t, x_0)}
+          \left[
+          \log
+          \frac{p_\theta(x_{t-1}\mid x_t)}{q(x_{t-1}\mid x_t, x_0)}
+          \right].
+        \end{aligned}
+        \]
+      </div>
+
+      <div class="key-result">
+        <strong>The DDPM ELBO</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \begin{aligned}
+            J_\theta(q)
+            =\;&
+            \mathbb{E}_{q(x_1\mid x_0)}
+            \log p_\theta(x_0\mid x_1)
+            -
+            D_{\mathrm{KL}}\!\left(q(x_T\mid x_0)\,\|\,p(x_T)\right) \\
+            &-
+            \sum_{t=2}^{T}
+            \mathbb{E}_{q(x_t\mid x_0)}
+            \left[
+              D_{\mathrm{KL}}\!\left(
+                q(x_{t-1}\mid x_t, x_0)\,\|\,p_\theta(x_{t-1}\mid x_t)
+              \right)
+            \right]
+            \end{aligned}
+            }
+          \]
+        </div>
+      </div>
+    </section>
+
+    <section id="three-terms">
+      <h2>7. The Three Terms of the DDPM Objective</h2>
+
+      <div class="grid three">
+        <div class="card">
+          <h3>(i) Reconstruction term</h3>
+          <p>
+            \[
+              \mathbb{E}_{q(x_1\mid x_0)}
+              \log p_\theta(x_0\mid x_1)
+            \]
+          </p>
+          <p class="small">
+            How well the last decoding step recovers the data from the first
+            latent, exactly like the reconstruction term in a VAE.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>(ii) Prior matching term</h3>
+          <p>
+            \[
+              D_{\mathrm{KL}}\!\left(q(x_T\mid x_0)\,\|\,p(x_T)\right)
+            \]
+          </p>
+          <p class="small">
+            <strong>Independent of \(\theta\).</strong> Both distributions are
+            fixed, so this term can be dropped from the optimization.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>(iii) Denoising matching term</h3>
+          <p>
+            \[
+              \sum_{t=2}^{T}
+              \mathbb{E}_{q(x_t\mid x_0)}
+              D_{\mathrm{KL}}\!\left(
+                q(x_{t-1}\mid x_t, x_0)\,\|\,p_\theta(x_{t-1}\mid x_t)
+              \right)
+            \]
+          </p>
+          <p class="small">
+            Also called the <em>consistency</em> term. It matches the learnable
+            denoising step to the “known” one.
+          </p>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(q(x_{t-1}\mid x_t, x_0)\)
+            <small>“known” denoising</small>
+          </div>
+          <div class="arrow">⟷</div>
+          <div class="box learned">
+            \(p_\theta(x_{t-1}\mid x_t)\)
+            <small>learnable denoising</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          The KL in the denoising matching term pulls the learned reverse step
+          towards the true reverse step, which is available because it gets to
+          see \(x_0\).
+        </p>
+      </div>
+
+      <div class="callout">
+        <strong>Objective:</strong>
+        \[
+          \theta^* = \arg\max_\theta\ J_\theta(q)
+          \qquad \text{(ELBO)}.
+        \]
+        To actually compute the denoising matching term, we need the
+        distribution \(q(x_{t-1}\mid x_t, x_0)\) in closed form. That is the
+        job of the next two sections.
+      </div>
+    </section>
+
+    <section id="marginal">
+      <h2>8. Estimating the KL: A Closed Form for \(q(x_t\mid x_0)\)</h2>
+
+      <p>
+        To compute \(q(x_{t-1}\mid x_t, x_0)\), we use Bayes' rule again:
+      </p>
+
+      <div class="formula">
+        \[
+          q(x_{t-1}\mid x_t, x_0)
+          =
+          \frac{q(x_t\mid x_{t-1}, x_0)\;q(x_{t-1}\mid x_0)}{q(x_t\mid x_0)}
+          =
+          \frac{q(x_t\mid x_{t-1})\;q(x_{t-1}\mid x_0)}{q(x_t\mid x_0)}.
+        \]
+      </div>
+
+      <p>
+        We already know one of the three pieces:
+      </p>
+
+      <div class="formula">
+        \[
+          q(x_t\mid x_{t-1})
+          =
+          \mathcal{N}\!\left(x_t;\ \sqrt{\alpha_t}\,x_{t-1},\ (1-\alpha_t)\,I\right).
+        \]
+      </div>
+
+      <p>
+        The other two are of the form \(q(x_t\mid x_0)\): the distribution of
+        \(x_t\) given the starting point, after \(t\) noising steps. It can be
+        obtained by unrolling the recursion.
+      </p>
+
+      <h3>8.1 Unrolling the recursion</h3>
+
+      <p>
+        We have
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          x_t
+          &=
+          \sqrt{\alpha_t}\,x_{t-1} + \sqrt{1-\alpha_t}\,\epsilon_{t-1},
+          && \epsilon_{t-1} \sim \mathcal{N}(0, I) \\[4pt]
+          &=
+          \sqrt{\alpha_t}
+          \left(
+            \sqrt{\alpha_{t-1}}\,x_{t-2} + \sqrt{1-\alpha_{t-1}}\,\epsilon_{t-2}
+          \right)
+          + \sqrt{1-\alpha_t}\,\epsilon_{t-1},
+          && \epsilon_{t-2} \sim \mathcal{N}(0, I) \\[4pt]
+          &=
+          \sqrt{\alpha_t\alpha_{t-1}}\,x_{t-2}
+          +
+          \underbrace{
+          \sqrt{\alpha_t - \alpha_t\alpha_{t-1}}\,\epsilon_{t-2}
+          +
+          \sqrt{1-\alpha_t}\,\epsilon_{t-1}
+          }_{T_2}.
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        Consider \(T_2 = a\,\epsilon_1 + b\,\epsilon_2\), with
+        \(\epsilon_1, \epsilon_2 \overset{\text{iid}}{\sim} \mathcal{N}(0, I)\).
+        \(T_2\) is a linear combination of two independent normal random
+        variables, and therefore it is another Gaussian random variable. Its
+        variances add:
+      </p>
+
+      <div class="formula">
+        \[
+          a^2 + b^2
+          =
+          (\alpha_t - \alpha_t\alpha_{t-1}) + (1-\alpha_t)
+          =
+          1 - \alpha_t\alpha_{t-1}
+          \quad\Longrightarrow\quad
+          T_2 = \epsilon^* \sim \mathcal{N}\!\left(0,\ (1-\alpha_t\alpha_{t-1})\,I\right).
+        \]
+      </div>
+
+      <p>
+        So two steps of the chain collapse into one:
+      </p>
+
+      <div class="formula">
+        \[
+          x_t
+          =
+          \sqrt{\alpha_t\alpha_{t-1}}\;x_{t-2}
+          +
+          \sqrt{1-\alpha_t\alpha_{t-1}}\;\bar\epsilon_{t-2},
+          \qquad
+          \bar\epsilon_{t-2} \sim \mathcal{N}(0, I).
+        \]
+      </div>
+
+      <p>
+        Continuing the recursion all the way to \(x_0\),
+      </p>
+
+      <div class="formula">
+        \[
+          x_t
+          =
+          \sqrt{\alpha_t\alpha_{t-1}\cdots\alpha_1}\;x_0
+          +
+          \sqrt{1-\alpha_t\alpha_{t-1}\cdots\alpha_1}\;\epsilon,
+          \qquad \epsilon \sim \mathcal{N}(0, I).
+        \]
+      </div>
+
+      <p>
+        Defining the cumulative product
+        \(\bar\alpha_t = \prod_{i=1}^{t}\alpha_i\),
+      </p>
+
+      <div class="key-result">
+        <strong>Jumping directly from \(x_0\) to \(x_t\)</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\,\epsilon,
+            \qquad
+            q(x_t\mid x_0)
+            =
+            \mathcal{N}\!\left(x_t;\ \sqrt{\bar\alpha_t}\,x_0,\ (1-\bar\alpha_t)\,I\right)
+            }
+          \]
+        </div>
+      </div>
+
+      <div class="callout intuition">
+        <strong>Why this matters:</strong>
+        the latent at any time \(t\) can be obtained directly from the data
+        \(x_0\), without hopping through \(t\) steps. This makes training cheap:
+        to get a noisy \(x_t\), we just sample one \(\epsilon\).
+      </div>
+    </section>
+
+    <section id="posterior">
+      <h2>9. The Known Denoising Distribution \(q(x_{t-1}\mid x_t, x_0)\)</h2>
+
+      <p>
+        Getting back to the consistency term, all three distributions in
+        Bayes' rule are now Gaussians that we know:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          q(x_t\mid x_{t-1}) &= \mathcal{N}\!\left(x_t;\ \sqrt{\alpha_t}\,x_{t-1},\ (1-\alpha_t)\,I\right), \\
+          q(x_t\mid x_0) &= \mathcal{N}\!\left(x_t;\ \sqrt{\bar\alpha_t}\,x_0,\ (1-\bar\alpha_t)\,I\right), \\
+          q(x_{t-1}\mid x_0) &= \mathcal{N}\!\left(x_{t-1};\ \sqrt{\bar\alpha_{t-1}}\,x_0,\ (1-\bar\alpha_{t-1})\,I\right).
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        Substituting the Gaussian densities,
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          q(x_{t-1}\mid x_t, x_0)
+          &\propto
+          \frac{
+            \exp\!\left[-\dfrac{\|x_t - \sqrt{\alpha_t}\,x_{t-1}\|_2^2}{2(1-\alpha_t)}\right]
+            \exp\!\left[-\dfrac{\|x_{t-1} - \sqrt{\bar\alpha_{t-1}}\,x_0\|_2^2}{2(1-\bar\alpha_{t-1})}\right]
+          }{
+            \exp\!\left[-\dfrac{\|x_t - \sqrt{\bar\alpha_t}\,x_0\|_2^2}{2(1-\bar\alpha_t)}\right]
+          } \\[8pt]
+          &\propto
+          \exp\!\left[-\frac{\|x_{t-1} - \mu_q\|_2^2}{2\sigma_q^2}\right],
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        where the last line is obtained via the <strong>completion of the
+        square</strong> method in \(x_{t-1}\). The exponent is quadratic in
+        \(x_{t-1}\), so the result is again Gaussian:
+      </p>
+
+      <div class="key-result">
+        <strong>The known denoising posterior</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            q(x_{t-1}\mid x_t, x_0)
+            =
+            \mathcal{N}\!\left(x_{t-1};\ \mu_q(x_t, x_0),\ \Sigma_q\right)
+            }
+          \]
+        </div>
+        <p>where</p>
+        <div class="formula">
+          \[
+            \mu_q(x_t, x_0)
+            =
+            \frac{\sqrt{\alpha_t}\,(1-\bar\alpha_{t-1})\,x_t + \sqrt{\bar\alpha_{t-1}}\,(1-\alpha_t)\,x_0}
+                 {1-\bar\alpha_t},
+          \]
+          \[
+            \Sigma_q
+            =
+            \underbrace{\frac{(1-\alpha_t)(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}}_{\sigma_q^2}\, I
+            =
+            \sigma_q^2\, I.
+          \]
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Both \(\mu_q\) and \(\Sigma_q\), and therefore
+        \(q(x_{t-1}\mid x_t, x_0)\), are computable and known.</strong>
+        \(\mu_q\) is a weighted combination of the current noisy point \(x_t\)
+        and the clean point \(x_0\), and \(\sigma_q^2\) depends only on the
+        fixed schedule \(\alpha_1, \ldots, \alpha_T\).
+      </div>
+    </section>
+
+    <section id="kl">
+      <h2>10. The KL Term Becomes a Regression</h2>
+
+      <p>
+        We now evaluate
+      </p>
+
+      <div class="formula">
+        \[
+          D_{\mathrm{KL}}\!\left(q(x_{t-1}\mid x_t, x_0)\,\|\,p_\theta(x_{t-1}\mid x_t)\right).
+        \]
+      </div>
+
+      <p>
+        Since the true denoising step has a fixed covariance \(\Sigma_q\), we
+        choose the learned step to have the same covariance and only learn its
+        mean:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x_{t-1}\mid x_t) = \mathcal{N}\!\left(x_{t-1};\ \mu_\theta,\ \Sigma_q\right).
+        \]
+      </div>
+
+      <p>
+        The KL divergence between two \(d\)-dimensional Gaussians then becomes
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          &D_{\mathrm{KL}}\!\left[
+            \mathcal{N}\!\left(x_{t-1};\ \mu_q,\ \Sigma_q\right)
+            \,\|\,
+            \mathcal{N}\!\left(x_{t-1};\ \mu_\theta,\ \Sigma_q\right)
+          \right] \\[6pt]
+          &=
+          \frac{1}{2}
+          \left[
+            \underbrace{\log\frac{|\Sigma_q|}{|\Sigma_q|}}_{0}
+            - d
+            + \underbrace{\operatorname{tr}\!\left(\Sigma_q^{-1}\Sigma_q\right)}_{\operatorname{tr}(I)\,=\,d}
+            + (\mu_\theta - \mu_q)^\top
+              \underbrace{\Sigma_q^{-1}}_{(\sigma_q^2 I)^{-1}}
+              (\mu_\theta - \mu_q)
+          \right] \\[6pt]
+          &=
+          \frac{1}{2\sigma_q^2}\,\|\mu_\theta - \mu_q\|_2^2.
+        \end{aligned}
+        \]
+      </div>
+
+      <div class="key-result">
+        <strong>Denoising matching = regression over \(\mu_q\)</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            D_{\mathrm{KL}}\!\left(q(x_{t-1}\mid x_t, x_0)\,\|\,p_\theta(x_{t-1}\mid x_t)\right)
+            =
+            \frac{1}{2\sigma_q^2}\,\|\mu_\theta(x_t) - \mu_q(x_t, x_0)\|_2^2
+            }
+          \]
+        </div>
+      </div>
+    </section>
+
+    <section id="final-elbo">
+      <h2>11. The ELBO for a DDPM</h2>
+
+      <p>
+        Dropping the prior matching term (it does not depend on \(\theta\)),
+      </p>
+
+      <div class="formula">
+        \[
+          J_\theta(q)
+          =
+          \mathbb{E}_{q(x_1\mid x_0)}
+          \log p_\theta(x_0\mid x_1)
+          -
+          \sum_{t=2}^{T}
+          \mathbb{E}_{q(x_t\mid x_0)}
+          \frac{1}{2\sigma_q^2}\,\|\mu_\theta - \mu_q\|_2^2,
+          \qquad
+          x_T \sim \mathcal{N}(0, I).
+        \]
+      </div>
+
+      <h3>11.1 Computing the reconstruction term</h3>
+
+      <p>
+        Consider \(\log p_\theta(x_0\mid x_1)\). We know
+        \(p_\theta(x_{t-1}\mid x_t) = \mathcal{N}\!\left(x_{t-1};\ \mu_\theta(x_t),\ \Sigma_q\right)\),
+        so for \(t=1\),
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x_0\mid x_1) = \mathcal{N}\!\left(x_0;\ \mu_\theta(x_1),\ \sigma_q^2 I\right).
+        \]
+      </div>
+
+      <p>
+        Its log-density is
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          \log p_\theta(x_0\mid x_1)
+          &=
+          \log
+          \left[
+            \frac{1}{(2\pi\sigma_q^2)^{d/2}}
+            \exp\!\left\{-\frac{\|x_0 - \mu_\theta(x_1)\|_2^2}{2\sigma_q^2}\right\}
+          \right] \\[6pt]
+          &=
+          -\frac{\|x_0 - \mu_\theta(x_1)\|_2^2}{2\sigma_q^2}
+          -
+          \underbrace{\frac{d}{2}\log\left(2\pi\sigma_q^2\right)}_{\text{independent of }\theta}.
+        \end{aligned}
+        \]
+      </div>
+
+      <div class="formula">
+        \[
+          \Longrightarrow\quad
+          \log p_\theta(x_0\mid x_1)
+          \propto
+          -\frac{\|x_0 - \mu_\theta(x_1)\|_2^2}{2\sigma_q^2}.
+        \]
+      </div>
+
+      <p>
+        As in the VAE with a Gaussian decoder, the reconstruction term is a
+        squared error.
+      </p>
+
+      <div class="key-result">
+        <strong>The DDPM objective</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            J_\theta(q)
+            =
+            \mathbb{E}_{q(x_1\mid x_0)}
+            \left[-\|x_0 - \mu_\theta(x_1)\|_2^2\right]
+            -
+            \sum_{t=2}^{T}
+            \mathbb{E}_{q(x_t\mid x_0)}
+            \left[
+              \frac{1}{2\sigma_q^2}\,\|\mu_\theta(x_t) - \mu_q\|_2^2
+            \right]
+            }
+          \]
+        </div>
+        <div class="formula">
+          \[
+            \theta^* = \arg\max_\theta\ J_\theta(q)
+          \]
+        </div>
+      </div>
+    </section>
+
+    <section id="network">
+      <h2>12. The Denoising Network</h2>
+
+      <p>
+        The basic idea is to express the unknown \(\mu_\theta(x_t)\) using a
+        <strong>function approximator</strong>, i.e. a neural network. A
+        U-Net is the usual choice: it first decreases the spatial dimension,
+        then increases it back, so its output has the same shape as its input.
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x_t,\ t\)
+            <small>input</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            U-Net \(\theta\)
+            <small>decrease dim → increase dim</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\mu_\theta(x_t)\)
+            <small>regressor on \(\mu_q\)</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Trained with \(\|\mu_\theta - \mu_q\|_2^2\).
+        </p>
+      </div>
+
+      <p>
+        There is <strong>one network</strong> that predicts \(\mu_\theta(x_t)\)
+        for <em>any</em> \(x_t\), not a separate network per time step. To
+        make sure the network has an idea of “time”, another fixed variable
+        \(t\), corresponding to the time of \(x_t\), is given as input.
+      </p>
+
+      <h3>12.1 Sinusoidal positional embedding of time</h3>
+
+      <p>
+        \(t\) is converted into a vector using sinusoidal positional
+        embeddings:
+      </p>
+
+      <div class="formula">
+        \[
+          p : t \mapsto \hat{t},
+          \qquad
+          t \in \mathbb{Z}^+,\ \hat{t} \in \mathbb{R}^d,
+        \]
+        \[
+          \hat{t}(t)_i =
+          \begin{cases}
+            \sin(\omega_k t) & \text{if } i = 2k \\
+            \cos(\omega_k t) & \text{if } i = 2k+1
+          \end{cases}
+          \qquad
+          \omega_k = \frac{1}{10000^{2k/d}}.
+        \]
+      </div>
+
+      <div class="callout intuition">
+        <strong>Why sinusoids?</strong>
+        Each pair of coordinates rotates at a different frequency
+        \(\omega_k\), from fast to slow. Nearby time steps get similar
+        vectors, distant ones get different vectors, and the network gets a
+        smooth, informative description of how noisy its input is.
+      </div>
+    </section>
+
+    <section id="x0-pred">
+      <h2>13. ELBO Equivalence: Predicting \(x_0\)</h2>
+
+      <p>
+        Recall the regression target:
+      </p>
+
+      <div class="formula">
+        \[
+          \frac{1}{2\sigma_q^2}\,\|\mu_\theta(x_t) - \mu_q(x_t, x_0)\|_2^2,
+          \qquad
+          \mu_q(x_t, x_0)
+          =
+          \frac{(1-\bar\alpha_{t-1})\sqrt{\alpha_t}}{1-\bar\alpha_t}\,x_t
+          +
+          \frac{(1-\alpha_t)\sqrt{\bar\alpha_{t-1}}}{1-\bar\alpha_t}\,x_0.
+        \]
+      </div>
+
+      <p>
+        The network already receives \(x_t\), so the only unknown in
+        \(\mu_q\) is \(x_0\). We therefore give \(\mu_\theta\) the same form,
+        but replace \(x_0\) with a prediction:
+      </p>
+
+      <div class="formula">
+        \[
+          \boxed{
+          \mu_\theta(x_t)
+          =
+          \frac{(1-\bar\alpha_{t-1})\sqrt{\alpha_t}}{1-\bar\alpha_t}\,x_t
+          +
+          \frac{(1-\alpha_t)\sqrt{\bar\alpha_{t-1}}}{1-\bar\alpha_t}\,\hat{x}_\theta(x_t)
+          }
+        \]
+      </div>
+
+      <p>
+        where \(\hat{x}_\theta(x_t)\) is the output of a neural network. With
+        this, the \(x_t\) terms cancel:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          \frac{1}{2\sigma_q^2}\,\|\mu_\theta - \mu_q\|_2^2
+          &=
+          \frac{1}{2\sigma_q^2}
+          \left\|
+            \frac{(1-\alpha_t)\sqrt{\bar\alpha_{t-1}}}{1-\bar\alpha_t}
+            \left(\hat{x}_\theta(x_t) - x_0\right)
+          \right\|_2^2 \\[6pt]
+          &=
+          \frac{1}{2\sigma_q^2}\,
+          \frac{(1-\alpha_t)^2\,\bar\alpha_{t-1}}{(1-\bar\alpha_t)^2}\,
+          \|\hat{x}_\theta(x_t) - x_0\|_2^2.
+        \end{aligned}
+        \]
+      </div>
+
+      <div class="key-result">
+        <strong>Each denoising matching term is a weighted regression onto
+        \(x_0\)</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            D_{\mathrm{KL}}\!\left(q(x_{t-1}\mid x_t, x_0)\,\|\,p_\theta(x_{t-1}\mid x_t)\right)
+            \propto
+            \|\hat{x}_\theta(x_t) - x_0\|_2^2
+            }
+          \]
+        </div>
+      </div>
+
+      <p>
+        The reconstruction term fits the same pattern. Since
+        \(\bar\alpha_0 = 1\) and \(\bar\alpha_1 = \alpha_1\), at \(t=1\) the
+        coefficient on \(x_t\) is \(0\) and the coefficient on
+        \(\hat{x}_\theta\) is \(1\), so \(\mu_\theta(x_1) = \hat{x}_\theta(x_1)\)
+        and \(\|x_0 - \mu_\theta(x_1)\|_2^2 = \|\hat{x}_\theta(x_1) - x_0\|_2^2\).
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x_t,\ t\)
+            <small>noisy input + time</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            U-Net \(\theta\)
+            <small>decrease dim → increase dim</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\hat{x}_\theta(x_t)\)
+            <small>regressor on the input data point \(x_0\)</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Trained with \(\|\hat{x}_\theta(x_t) - x_0\|_2^2\).
+        </p>
+      </div>
+
+      <div class="callout intuition">
+        <strong>The network is a denoiser.</strong>
+        It can be viewed as a “denoiser” for the data point \(x_0\), at all
+        noisy instances \(x_t\): given a corrupted image and how corrupted it
+        is, guess the clean image.
+      </div>
+
+      <div class="callout warning">
+        <strong>Contrast with GANs and VAEs:</strong>
+        unlike in a GAN or a VAE, the neural network trained in a DDPM does
+        <strong>not</strong> output a novel data point from \(p_{X}\) (the true
+        data distribution). It only denoises. New samples emerge from running
+        it repeatedly inside the reverse process.
+      </div>
+    </section>
+
+    <section id="training">
+      <h2>14. Training a DDPM</h2>
+
+      <p>
+        Given data points \(x_0\) from the true data distribution, with
+        \(T \approx 1000\) and \(\alpha_1, \ldots, \alpha_T \in [0,1]\) fixed:
+      </p>
+
+      <div class="algorithm">
+        <div class="algo-title">Algorithm 1 · DDPM training</div>
+        <p class="small">Repeat until convergence:</p>
+        <ol>
+          <li>Take a data point \(x_0 \sim p_X\).</li>
+          <li>Pick a time step \(t \sim \mathrm{Uniform}\{1, \ldots, T\}\).</li>
+          <li>
+            Sample \(x_t \sim q(x_t\mid x_0) = \mathcal{N}\!\left(x_t;\ \sqrt{\bar\alpha_t}\,x_0,\ (1-\bar\alpha_t)\,I\right)\),
+            i.e.
+            \[
+              x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\,\epsilon_t,
+              \qquad \epsilon_t \sim \mathcal{N}(0, I).
+            \]
+          </li>
+          <li>
+            Forward pass: compute \(\hat{x}_\theta(x_t)\) from the U-Net with
+            input \((x_t, t)\).
+          </li>
+          <li>
+            Backward pass: take a gradient-descent step on the loss
+            \[
+              \mathcal{L}(\theta) = \sum_{m=1}^{M} \left\|\hat{x}_\theta(x_t^{m}) - x_0\right\|_2^2,
+              \qquad
+              \theta^{k+1} \leftarrow \theta^{k} - \beta\,\nabla_\theta \mathcal{L}(\theta),
+            \]
+            where the sum runs over \(M\) sampled time steps / noisy
+            instances \(x_t^m\) and \(\beta\) is the learning rate.
+          </li>
+        </ol>
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x_t,\ t\)
+            <small>input</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            U-Net \(\theta\)
+            <small>forward pass</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\hat{x}_\theta(x_t)\)
+            <small>prediction</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\nabla_\theta \|\hat{x}_\theta - x_0\|_2^2\)
+            <small>backward pass</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Note on weighting:</strong>
+        the exact ELBO weighs each time step by
+        \(\frac{1}{2\sigma_q^2}\frac{(1-\alpha_t)^2\bar\alpha_{t-1}}{(1-\bar\alpha_t)^2}\).
+        Training as above drops these weights and uses a plain squared error,
+        which is simpler and works well in practice. Since maximizing the ELBO
+        means minimizing the regression error, we take gradient
+        <em>descent</em> steps on \(\mathcal{L}(\theta)\).
+      </div>
+    </section>
+
+    <section id="sampling">
+      <h2>15. Inference / Sampling in a DDPM</h2>
+
+      <p>
+        To get a sample \(x_0 \sim p_{X}\), we need to traverse the
+        backward / decoding process:
+      </p>
+
+      <div class="formula">
+        \[
+          x_T \longrightarrow x_{T-1} \longrightarrow x_{T-2} \longrightarrow \cdots \longrightarrow x_0.
+        \]
+      </div>
+
+      <p>
+        That is, we sample iteratively from the decoding distributions
+        \(x_{t-1} \sim p_\theta(x_{t-1}\mid x_t)\) for \(t = T\) down to \(1\):
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          x_T &\sim \mathcal{N}(0, I), \\
+          x_{T-1} &\sim p_\theta(x_{T-1}\mid x_T), \\
+          x_{T-2} &\sim p_\theta(x_{T-2}\mid x_{T-1}), \\
+          &\;\;\vdots \\
+          x_0 &\sim p_\theta(x_0\mid x_1).
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        Each step is a Gaussian with the learned mean, so we can sample it
+        with the same reparameterization as in a VAE:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x_{t-1}\mid x_t)
+          =
+          \mathcal{N}\!\left(x_{t-1};\ \mu_{\theta^*}(x_t),\ \sigma_q^2 I\right)
+          \quad\Longrightarrow\quad
+          x_{t-1} = \mu_{\theta^*}(x_t) + \sigma_q\,\epsilon,
+          \qquad \epsilon \sim \mathcal{N}(0, I),
+        \]
+        \[
+          \mu_{\theta^*}(x_t)
+          =
+          \frac{(1-\bar\alpha_{t-1})\sqrt{\alpha_t}}{1-\bar\alpha_t}\,x_t
+          +
+          \frac{(1-\alpha_t)\sqrt{\bar\alpha_{t-1}}}{1-\bar\alpha_t}\,\hat{x}_{\theta^*}(x_t).
+        \]
+      </div>
+
+      <div class="algorithm">
+        <div class="algo-title">Algorithm 2 · DDPM sampling</div>
+        <ol>
+          <li>Start with \(x_T \sim \mathcal{N}(0, I)\).</li>
+          <li>
+            For \(t = T, T-1, \ldots, 1\):
+            <ol type="a">
+              <li>Get \(\hat{x}_{\theta^*}(x_t)\) from the trained network (forward pass on \((x_t, t)\)).</li>
+              <li>Compute \(\mu_{\theta^*}(x_t)\) using the formula above.</li>
+              <li>
+                Sample \(x_{t-1} = \mu_{\theta^*}(x_t) + \sigma_q\,\epsilon\),
+                \(\epsilon \sim \mathcal{N}(0, I)\), i.e. sample from
+                \(p_\theta(x_{t-1}\mid x_t)\).
+              </li>
+            </ol>
+          </li>
+          <li>Return \(x_0\): a new generated sample.</li>
+        </ol>
+      </div>
+
+      <div class="callout warning">
+        <strong>Sampling is slow:</strong>
+        to draw one sample from a DDPM, we need to perform \(T\) forward passes
+        through the trained network \(\theta^*\), one per reverse step. With
+        \(T \approx 1000\), that is far more expensive than the single decoder
+        pass of a VAE or a GAN.
+      </div>
+
+      <p class="small">
+        At the last step, \(\sigma_q^2 = \frac{(1-\alpha_1)(1-\bar\alpha_0)}{1-\bar\alpha_1} = 0\)
+        because \(\bar\alpha_0 = 1\), so the final step simply returns the
+        predicted mean without adding noise.
+      </p>
+    </section>
+
+    <section id="summary">
+      <h2>16. Summary</h2>
+
+      <p>
+        A DDPM follows the same latent-variable recipe as a VAE, with one key
+        change: the encoder is a fixed noising process, so all the learning
+        goes into the decoder.
+      </p>
+
+      <div class="takeaways">
+        <ol>
+          <li>
+            <strong>Hierarchical VAE:</strong>
+            \(T\) latent variables \(x_1, \ldots, x_T\), each with the same
+            dimension as the data \(x_0\).
+          </li>
+          <li>
+            <strong>Fixed forward process:</strong>
+            \(x_t = \sqrt{\alpha_t}\,x_{t-1} + \sqrt{1-\alpha_t}\,\epsilon_t\),
+            a first-order Markov chain that ends in \(\mathcal{N}(0, I)\).
+          </li>
+          <li>
+            <strong>Learned reverse process:</strong>
+            \(p_\theta(x_{t-1}\mid x_t) = \mathcal{N}(\mu_\theta(x_t), \sigma_q^2 I)\),
+            trained by maximizing the ELBO.
+          </li>
+          <li>
+            <strong>Three ELBO terms:</strong>
+            reconstruction, prior matching (independent of \(\theta\)), and
+            denoising matching.
+          </li>
+          <li>
+            <strong>Closed forms:</strong>
+            \(q(x_t\mid x_0) = \mathcal{N}(\sqrt{\bar\alpha_t}\,x_0, (1-\bar\alpha_t)I)\)
+            and \(q(x_{t-1}\mid x_t, x_0) = \mathcal{N}(\mu_q, \sigma_q^2 I)\)
+            are both known.
+          </li>
+          <li>
+            <strong>KL becomes regression:</strong>
+            matching means gives \(\|\mu_\theta - \mu_q\|_2^2\), which, by
+            parameterizing \(\mu_\theta\) through \(\hat{x}_\theta(x_t)\),
+            becomes \(\|\hat{x}_\theta(x_t) - x_0\|_2^2\).
+          </li>
+          <li>
+            <strong>Sampling:</strong>
+            start from noise and apply the learned denoiser \(T\) times.
+          </li>
+        </ol>
+      </div>
+
+      <div class="key-result">
+        <strong>The central DDPM equation</strong>
+        <div class="formula">
+          \[
+          \boxed{
+          J_\theta(q)
+          =
+          \underbrace{
+          \mathbb{E}_{q(x_1\mid x_0)}
+          \log p_\theta(x_0\mid x_1)
+          }_{\text{reconstruction}}
+          -
+          \underbrace{
+          D_{\mathrm{KL}}\!\left(q(x_T\mid x_0)\,\|\,p(x_T)\right)
+          }_{\text{prior matching}}
+          -
+          \sum_{t=2}^{T}
+          \underbrace{
+          \mathbb{E}_{q(x_t\mid x_0)}
+          D_{\mathrm{KL}}\!\left(
+            q(x_{t-1}\mid x_t, x_0)\,\|\,p_\theta(x_{t-1}\mid x_t)
+          \right)
+          }_{\text{denoising matching}}
+          }
+          \]
+        </div>
+      </div>
+
+      <p>
+        Once this equation is understood, the DDPM training loop becomes much
+        less mysterious: noise a data point to a random time step, ask the
+        network to recover the clean data point, and repeat. Generation is
+        that same denoiser, applied \(T\) times to pure noise.
+      </p>
+
+      <footer>
+        <strong>Course note.</strong>
+        This lesson is based on the supplied handwritten DDPM notes of Rittik Panda.
+      </footer>
+    </section>
+  </main>
+</div>
+</body>
+</html>
