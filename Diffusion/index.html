@@ -202,7 +202,10 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      min-width: 620px;
+      /* Size the row to its content so a wide row scrolls from the left
+         edge instead of overflowing (and clipping) on both sides. */
+      width: max-content;
+      min-width: 100%;
     }
 
     .box {
@@ -210,6 +213,7 @@
       border-radius: 10px;
       padding: 14px 18px;
       min-width: 135px;
+      max-width: 210px;
       text-align: center;
       background: white;
     }
