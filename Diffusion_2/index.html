@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diffusion Models II — Noise, Scores, Guidance &amp; DDIM</title>
+
+  <!-- MathJax for mathematical notation -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+      --text: #20242a;
+      --muted: #606873;
+      --border: #e3e6ea;
+      --accent: #3f5f8f;
+      --accent-soft: #eef3f9;
+      --green-soft: #eef7f2;
+      --green: #2e6b4f;
+      --yellow-soft: #fff8e8;
+      --yellow: #8a6718;
+      --code: #f4f5f7;
+      --shadow: 0 8px 28px rgba(20, 30, 45, 0.07);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", sans-serif;
+      line-height: 1.72;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 850px);
+      gap: 38px;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 24px 80px;
+    }
+
+    aside {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+    }
+
+    .course-label {
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    aside h2 {
+      font-size: 1.15rem;
+      margin: 0 0 18px;
+      line-height: 1.3;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 10px;
+      margin: 2px 0;
+      border-radius: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+
+    nav a:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    main {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 54px 62px 70px;
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+      margin: 0 0 16px;
+      color: #1e2a3a;
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      line-height: 1.25;
+      margin: 54px 0 18px;
+      color: #25344a;
+      scroll-margin-top: 24px;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 34px 0 12px;
+      color: #33445c;
+      scroll-margin-top: 24px;
+    }
+
+    p { margin: 12px 0 18px; }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 16px 20px;
+      border-radius: 0 10px 10px 0;
+      margin: 22px 0;
+    }
+
+    .intuition {
+      border-left-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .warning {
+      border-left-color: var(--yellow);
+      background: var(--yellow-soft);
+    }
+
+    .formula {
+      background: #fafbfc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 14px;
+      margin: 22px 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .key-result {
+      border: 1.5px solid #cfd8e5;
+      background: #fbfcfe;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin: 26px 0;
+    }
+
+    .key-result strong {
+      color: var(--accent);
+    }
+
+    ul, ol {
+      padding-left: 25px;
+    }
+
+    li { margin: 7px 0; }
+
+    code {
+      background: var(--code);
+      padding: 2px 5px;
+      border-radius: 5px;
+      font-size: 0.92em;
+    }
+
+    .diagram {
+      margin: 28px 0;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fcfcfd;
+      overflow-x: auto;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-width: 620px;
+    }
+
+    .box {
+      border: 1.5px solid #9eabbc;
+      border-radius: 10px;
+      padding: 14px 18px;
+      min-width: 135px;
+      text-align: center;
+      background: white;
+    }
+
+    .box small {
+      display: block;
+      color: var(--muted);
+      margin-top: 5px;
+      font-size: 0.8rem;
+    }
+
+    .box.noise {
+      background: repeating-linear-gradient(
+        45deg, #f4f6f9, #f4f6f9 3px, #ffffff 3px, #ffffff 6px);
+    }
+
+    .box.learned {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .arrow {
+      color: #69778a;
+      font-size: 1.5rem;
+    }
+
+    .diagram-caption {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 14px 0 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin: 22px 0;
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 18px;
+      background: #fff;
+      min-width: 0;
+      overflow-x: auto;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 1.05rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 22px 0;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f5f7fa;
+      color: #354256;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .takeaways {
+      background: #f7f9fc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 30px;
+    }
+
+    .algorithm {
+      border: 1.5px solid #cfd8e5;
+      border-radius: 12px;
+      background: #fbfcfe;
+      padding: 18px 24px;
+      margin: 26px 0;
+    }
+
+    .algorithm .algo-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .algorithm ol {
+      margin: 0;
+    }
+
+    footer {
+      margin-top: 55px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .big-picture {
+      padding: 24px 28px;
+    }
+
+    .big-picture h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        display: block;
+        padding: 18px 12px 45px;
+      }
+
+      aside {
+        position: static;
+        margin-bottom: 16px;
+      }
+
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      nav a {
+        background: #fff;
+        border: 1px solid var(--border);
+      }
+
+      main {
+        padding: 34px 24px 48px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .big-picture {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid, .grid.three { grid-template-columns: 1fr; }
+      h2 { font-size: 1.4rem; }
+      main { border-radius: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+
+  <aside>
+    <div class="course-label">Generative AI</div>
+    <h2>Diffusion Models II</h2>
+    <nav aria-label="Table of contents">
+      <a href="#noise">1. DDPM as Noise Regression</a>
+      <a href="#score">2. DDPM as a Score Predictor</a>
+      <a href="#true-score">3. Score = Scaled Noise</a>
+      <a href="#guided">4. Guided Diffusion</a>
+      <a href="#classifier">5. Classifier Guidance</a>
+      <a href="#cfg">6. Classifier-Free Guidance</a>
+      <a href="#ldm">7. Latent Diffusion Models</a>
+      <a href="#ddim-why">8. Why DDIM?</a>
+      <a href="#ddim-forward">9. Non-Markovian Forward Process</a>
+      <a href="#ddim-elbo">10. Same ELBO, Same Training</a>
+      <a href="#ddim-reverse">11. DDIM Reverse Process</a>
+      <a href="#ddim-sampling">12. DDIM Sampling</a>
+      <a href="#summary">13. Summary</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header>
+      <div class="eyebrow">Generative AI Course · Diffusion Models · Part 2</div>
+      <h1>Diffusion Models II: Noise, Scores, Guidance &amp; DDIM</h1>
+    </header>
+
+    <div class="callout intuition big-picture">
+      <h3>The Big Picture</h3>
+
+      <p>
+        In <a href="../Diffusion/">Part 1</a> we derived the DDPM: a fixed
+        noising process, a learned denoising process, and an ELBO that reduces
+        to a regression \(\|\hat{x}_\theta(x_t) - x_0\|_2^2\) onto the clean
+        data point. This lesson builds on that result in four directions:
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Alternate interpretations</h3>
+          <p class="small">
+            The same network can predict the <strong>added noise</strong>
+            \(\epsilon_t\) or the <strong>score</strong>
+            \(\nabla_{x_t}\log p(x_t)\). All three targets are equivalent.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Guided diffusion</h3>
+          <p class="small">
+            Sample from \(p(x_0\mid y)\) by steering the score with a
+            classifier, or without one (<strong>classifier-free
+            guidance</strong>).
+          </p>
+        </div>
+        <div class="card">
+          <h3>Latent diffusion</h3>
+          <p class="small">
+            Run the diffusion in the compact latent space of a pre-trained
+            encoder–decoder instead of in pixel space.
+          </p>
+        </div>
+        <div class="card">
+          <h3>DDIM</h3>
+          <p class="small">
+            A non-Markovian family with the <strong>same training</strong> as
+            DDPM but a <strong>deterministic</strong>, invertible sampler.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <section id="noise">
+      <h2>1. DDPM as Regression over the Added Noise</h2>
+
+      <p>
+        Recall the forward process of a DDPM, which lets us jump from \(x_0\)
+        to any \(x_t\) directly:
+      </p>
+
+      <div class="formula">
+        \[
+          x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\,\epsilon_t,
+          \qquad \epsilon_t \sim \mathcal{N}(0, I).
+        \]
+      </div>
+
+      <p>
+        Rearranging the terms,
+      </p>
+
+      <div class="key-result">
+        <strong>Clean data in terms of the noise</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            x_0 = \frac{x_t - \sqrt{1-\bar\alpha_t}\,\epsilon_t}{\sqrt{\bar\alpha_t}}
+            }
+            \tag{1}
+          \]
+        </div>
+        <p class="small">
+          Here \(\epsilon_t\) is the noise that was added to \(x_0\) to convert
+          it into \(x_t\).
+        </p>
+      </div>
+
+      <p>
+        The consistency (denoising matching) term in the ELBO is
+        \(\|\mu_\theta - \mu_q\|_2^2\), where
+      </p>
+
+      <ul>
+        <li>\(\mu_q\): the mean of the known posterior \(q(x_{t-1}\mid x_t, x_0)\),</li>
+        <li>\(\mu_\theta\): the mean of the learned reverse step \(p_\theta(x_{t-1}\mid x_t)\).</li>
+      </ul>
+
+      <h3>1.1 Writing \(\mu_q\) in terms of \(x_t\) and \(\epsilon_t\)</h3>
+
+      <p>
+        From Part 1,
+      </p>
+
+      <div class="formula">
+        \[
+          \mu_q(x_t, x_0)
+          =
+          \frac{\sqrt{\alpha_t}\,(1-\bar\alpha_{t-1})\,x_t + \sqrt{\bar\alpha_{t-1}}\,(1-\alpha_t)\,x_0}
+               {1-\bar\alpha_t}.
+        \]
+      </div>
+
+      <p>
+        Replacing \(x_0\) using Eq. (1):
+      </p>
+
+      <div class="formula">
+        \[
+          \mu_q(x_t, x_0)
+          =
+          \frac{\sqrt{\alpha_t}\,(1-\bar\alpha_{t-1})\,x_t
+                + \sqrt{\bar\alpha_{t-1}}\,(1-\alpha_t)
+                \overbrace{\left(\dfrac{x_t - \sqrt{1-\bar\alpha_t}\,\epsilon_t}{\sqrt{\bar\alpha_t}}\right)}^{x_0}}
+               {1-\bar\alpha_t}.
+        \]
+      </div>
+
+      <p>
+        Using \(\sqrt{\bar\alpha_{t-1}}/\sqrt{\bar\alpha_t} = 1/\sqrt{\alpha_t}\),
+        the coefficient of \(x_t\) becomes
+        \(\frac{\alpha_t(1-\bar\alpha_{t-1}) + 1-\alpha_t}{\sqrt{\alpha_t}\,(1-\bar\alpha_t)} = \frac{1}{\sqrt{\alpha_t}}\),
+        and so
+      </p>
+
+      <div class="key-result">
+        <strong>The posterior mean in terms of the noise</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \mu_q(x_t, \epsilon_t)
+            =
+            \frac{1}{\sqrt{\alpha_t}}\,x_t
+            -
+            \frac{1-\alpha_t}{\sqrt{1-\bar\alpha_t}\,\sqrt{\alpha_t}}\,\epsilon_t
+            }
+          \]
+        </div>
+      </div>
+
+      <h3>1.2 Parameterizing \(\mu_\theta\) with a noise predictor</h3>
+
+      <p>
+        As in Part 1, the network already sees \(x_t\), so we give
+        \(\mu_\theta\) the same form and only replace the unknown, which is
+        now the noise:
+      </p>
+
+      <div class="formula">
+        \[
+          \mu_\theta(x_t)
+          =
+          \frac{1}{\sqrt{\alpha_t}}\,x_t
+          -
+          \frac{1-\alpha_t}{\sqrt{1-\bar\alpha_t}\,\sqrt{\alpha_t}}\,\hat\epsilon_\theta(x_t),
+        \]
+      </div>
+
+      <p>
+        where \(\hat\epsilon_\theta(x_t)\) is the output of a neural network.
+        The \(x_t\) terms cancel in the consistency term:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          \text{Consistency term}
+          &=
+          \frac{1}{2\sigma_q^2}\,\|\mu_q - \mu_\theta\|_2^2 \\[6pt]
+          &=
+          \frac{1}{2\sigma_q^2}\,
+          \frac{(1-\alpha_t)^2}{(1-\bar\alpha_t)\,\alpha_t}
+          \left[\,\|\epsilon_t - \hat\epsilon_\theta(x_t)\|_2^2\,\right] \\[6pt]
+          &\propto
+          \|\epsilon_t - \hat\epsilon_\theta(x_t)\|_2^2.
+        \end{aligned}
+        \]
+      </div>
+
+      <div class="callout">
+        <strong>Regression over the added noise.</strong>
+        Instead of predicting the clean image, the network predicts the noise
+        that was mixed into it. This is the parameterization used in the
+        original DDPM paper and in most diffusion models in practice.
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x_t,\ t\)
+            <small>noisy input + time</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            U-Net \(\theta\)
+            <small>decrease dim → increase dim</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\hat\epsilon_\theta(x_t)\)
+            <small>regressor on the added noise</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Trained with \(\|\epsilon_t - \hat\epsilon_\theta(x_t)\|_2^2\).
+        </p>
+      </div>
+    </section>
+
+    <section id="score">
+      <h2>2. DDPM as a Score Predictor</h2>
+
+      <h3>2.1 Tweedie's formula</h3>
+
+      <p>
+        Suppose a random variable \(z\) is Gaussian with mean \(\mu_z\) and
+        covariance \(\Sigma_z\):
+      </p>
+
+      <div class="formula">
+        \[
+          z \sim \mathcal{N}(z;\ \mu_z,\ \Sigma_z) = p(z).
+        \]
+      </div>
+
+      <p>
+        <strong>Tweedie's formula</strong> says that, having observed \(z\), the
+        best estimate of its mean is
+      </p>
+
+      <div class="key-result">
+        <strong>Tweedie's formula</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \mathbb{E}\left[\mu_z \mid z\right]
+            =
+            z + \Sigma_z\,\nabla_z \log p(z)
+            }
+          \]
+        </div>
+        <p class="small">
+          where \(\nabla_z \log p(z)\) is defined as the
+          <strong>score function</strong>: the direction in which the log-density
+          increases fastest.
+        </p>
+      </div>
+
+      <h3>2.2 Applying Tweedie's formula to the forward process</h3>
+
+      <p>
+        Recall that in a DDPM,
+      </p>
+
+      <div class="formula">
+        \[
+          q(x_t\mid x_0)
+          =
+          \mathcal{N}\!\left(x_t;\ \underbrace{\sqrt{\bar\alpha_t}\,x_0}_{\text{mean}},\ (1-\bar\alpha_t)\,I\right).
+        \]
+      </div>
+
+      <p>
+        Applying Tweedie's formula with \(z = x_t\) and
+        \(\Sigma_z = (1-\bar\alpha_t)\,I\):
+      </p>
+
+      <div class="formula">
+        \[
+          \mathbb{E}\left[\mu \mid x_t\right]
+          =
+          x_t + (1-\bar\alpha_t)\,\nabla_{x_t}\log p(x_t).
+        \]
+      </div>
+
+      <p>
+        The best estimate for \(\mathbb{E}[\mu\mid x_t]\) is the true mean,
+        \(\mathbb{E}[\mu\mid x_t] = \sqrt{\bar\alpha_t}\,x_0\). Therefore
+      </p>
+
+      <div class="formula">
+        \[
+          \sqrt{\bar\alpha_t}\,x_0 = x_t + (1-\bar\alpha_t)\,\nabla_{x_t}\log p(x_t).
+        \]
+      </div>
+
+      <p>
+        Rearranging the terms,
+      </p>
+
+      <div class="key-result">
+        <strong>Clean data in terms of the score</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            x_0
+            =
+            \frac{x_t + (1-\bar\alpha_t)\,\nabla_{x_t}\log p(x_t)}{\sqrt{\bar\alpha_t}}
+            }
+            \tag{2}
+          \]
+        </div>
+      </div>
+
+      <h3>2.3 The consistency term in terms of the score</h3>
+
+      <p>
+        Substituting Eq. (2) for \(x_0\) in \(\mu_q\):
+      </p>
+
+      <div class="formula">
+        \[
+          \mu_q(x_t, x_0)
+          =
+          \frac{\sqrt{\alpha_t}\,(1-\bar\alpha_{t-1})\,x_t
+                + \sqrt{\bar\alpha_{t-1}}\,(1-\alpha_t)
+                \overbrace{\left(\dfrac{x_t + (1-\bar\alpha_t)\,\nabla_{x_t}\log p(x_t)}{\sqrt{\bar\alpha_t}}\right)}^{x_0}}
+               {1-\bar\alpha_t}.
+        \]
+      </div>
+
+      <div class="key-result">
+        <strong>The posterior mean in terms of the score</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \mu_q
+            =
+            \frac{1}{\sqrt{\alpha_t}}\,x_t
+            +
+            \frac{1-\alpha_t}{\sqrt{\alpha_t}}\,\nabla_{x_t}\log p(x_t)
+            }
+          \]
+        </div>
+      </div>
+
+      <p>
+        We parameterize the model mean the same way, with a network
+        \(s_\theta(x_t)\) that outputs the predicted score:
+      </p>
+
+      <div class="formula">
+        \[
+          \mu_\theta
+          =
+          \frac{1}{\sqrt{\alpha_t}}\,x_t
+          +
+          \frac{1-\alpha_t}{\sqrt{\alpha_t}}\,s_\theta(x_t).
+        \]
+      </div>
+
+      <p>
+        Then
+      </p>
+
+      <div class="formula">
+        \[
+          \text{Consistency term}
+          \;\propto\;
+          \|\mu_q - \mu_\theta\|_2^2
+          \;\propto\;
+          \left\|\nabla_{x_t}\log p(x_t) - s_\theta(x_t)\right\|_2^2.
+        \]
+      </div>
+
+      <div class="callout">
+        <strong>Regression over the score function.</strong>
+        Training a DDPM can equally be seen as teaching a network to predict
+        the score of the noisy data distribution at every noise level.
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x_t,\ t\)
+            <small>noisy input + time</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            U-Net \(\theta\)
+            <small>decrease dim → increase dim</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(s_\theta(x_t)\)
+            <small>regressor on the score function</small>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Trained with \(\|\nabla_{x_t}\log p(x_t) - s_\theta(x_t)\|_2^2\).
+        </p>
+      </div>
+    </section>
+
+    <section id="true-score">
+      <h2>3. Computing the True Score: Score = Scaled Noise</h2>
+
+      <p>
+        We now have two expressions for \(x_0\):
+      </p>
+
+      <div class="formula">
+        \[
+          x_0 = \frac{x_t + (1-\bar\alpha_t)\,\nabla_{x_t}\log p(x_t)}{\sqrt{\bar\alpha_t}}
+          \quad \text{(from Tweedie, Eq. 2)},
+        \]
+        \[
+          x_0 = \frac{x_t - \sqrt{1-\bar\alpha_t}\,\epsilon_t}{\sqrt{\bar\alpha_t}}
+          \quad \text{(by definition, Eq. 1)},
+          \qquad \epsilon_t \sim \mathcal{N}(0, I).
+        \]
+      </div>
+
+      <p>
+        Equating the two and rearranging,
+        \((1-\bar\alpha_t)\,\nabla_{x_t}\log p(x_t) = -\sqrt{1-\bar\alpha_t}\,\epsilon_t\), so
+      </p>
+
+      <div class="key-result">
+        <strong>True score = negatively scaled noise</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \nabla_{x_t}\log p(x_t) = -\frac{1}{\sqrt{1-\bar\alpha_t}}\,\epsilon_t
+            }
+          \]
+        </div>
+      </div>
+
+      <div class="callout intuition">
+        <strong>Why this makes sense:</strong>
+        the noise \(\epsilon_t\) points <em>away</em> from the clean data. The
+        score points towards regions of higher probability, i.e.
+        <em>back towards</em> the data. So the score is the noise with its sign
+        flipped and rescaled.
+      </div>
+
+      <p>
+        Therefore, <strong>a DDPM trained to regress over the added noise is
+        implicitly predicting the score function</strong>:
+        \(s_\theta(x_t) = -\hat\epsilon_\theta(x_t)/\sqrt{1-\bar\alpha_t}\).
+      </p>
+
+      <h3>3.1 Three equivalent views</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>The network predicts</th>
+            <th>Regression target</th>
+            <th>Conversion</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Clean data (Part 1)</td>
+            <td>\(\|\hat{x}_\theta(x_t) - x_0\|_2^2\)</td>
+            <td>\(x_0 = \frac{x_t - \sqrt{1-\bar\alpha_t}\,\epsilon_t}{\sqrt{\bar\alpha_t}}\)</td>
+          </tr>
+          <tr>
+            <td>Added noise</td>
+            <td>\(\|\epsilon_t - \hat\epsilon_\theta(x_t)\|_2^2\)</td>
+            <td>\(\epsilon_t = \frac{x_t - \sqrt{\bar\alpha_t}\,x_0}{\sqrt{1-\bar\alpha_t}}\)</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>\(\|\nabla_{x_t}\log p(x_t) - s_\theta(x_t)\|_2^2\)</td>
+            <td>\(\nabla_{x_t}\log p(x_t) = -\frac{\epsilon_t}{\sqrt{1-\bar\alpha_t}}\)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="small">
+        All three are the same ELBO up to a time-dependent weight; they differ
+        only in what the network is asked to output.
+      </p>
+    </section>
+
+    <section id="guided">
+      <h2>4. Guided Diffusion Models for Conditional Generation</h2>
+
+      <p>
+        So far the model generates samples from \(p(x_0)\) with no control over
+        <em>what</em> is generated. Now suppose the data comes in pairs
+      </p>
+
+      <div class="formula">
+        \[
+          (x_0,\ y),
+          \qquad y : \text{conditioning variable}.
+        \]
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Example: class labels</h3>
+          <p class="small">\(x_0\): an image, \(y\): its class label.</p>
+        </div>
+        <div class="card">
+          <h3>Example: text</h3>
+          <p class="small">\(x_0\): an image, \(y\): a text embedding of its caption.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Goal:</strong> sample from the conditional distribution
+        \(p(x_0\mid y)\).
+        <br />
+        <strong>Question:</strong> how do we modify a DDPM to sample from
+        \(p(x_0\mid y)\)?
+      </div>
+    </section>
+
+    <section id="classifier">
+      <h2>5. Classifier Guidance</h2>
+
+      <p>
+        Recall that DDPMs are score predictors: they predict the true score of
+        the <strong>unconditional</strong> (marginal) distribution,
+        \(\nabla_{x_t}\log p(x_t)\).
+      </p>
+
+      <p>
+        From a conditional sampling perspective, the goal is to predict, or
+        regress over, the <strong>conditional score</strong>
+        \(\nabla_{x_t}\log p(x_t\mid y)\). Using Bayes' rule,
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          \nabla_{x_t}\log p(x_t\mid y)
+          &=
+          \nabla_{x_t}\log\left(\frac{p(x_t)\,p(y\mid x_t)}{p(y)}\right) \\[6pt]
+          &=
+          \nabla_{x_t}\log p(x_t) + \nabla_{x_t}\log p(y\mid x_t)
+          - \underbrace{\nabla_{x_t}\log p(y)}_{=\,0}.
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        The last term vanishes because \(p(y)\) does not depend on \(x_t\).
+      </p>
+
+      <div class="key-result">
+        <strong>Conditional score = unconditional score + classifier gradient</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \nabla_{x_t}\log p(x_t\mid y)
+            =
+            \underbrace{\nabla_{x_t}\log p(x_t)}_{\text{unconditional score}}
+            +
+            \underbrace{\nabla_{x_t}\log p(y\mid x_t)}_{\text{classifier gradient}}
+            }
+          \]
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Unconditional score</h3>
+          <p class="small">
+            Comes from the ordinary DDPM U-Net trained with
+            \(\|\epsilon_t - \hat\epsilon_\theta\|_2^2\), since
+            \(\hat\epsilon_\theta\) is a scaled score estimate.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Classifier gradient</h3>
+          <p class="small">
+            Comes from a separate, <strong>pre-trained</strong>
+            classifier/regressor \(p(y\mid x_t)\), differentiated with respect
+            to its input \(x_t\).
+          </p>
+        </div>
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box learned">
+            U-Net \(\theta\)
+            <small>\(x_t, t \to \hat\epsilon_\theta\) (unconditional score)</small>
+          </div>
+          <div class="arrow">+</div>
+          <div class="box">
+            Classifier \(p(y\mid x_t)\)
+            <small>pre-trained; backprop to \(x_t\) gives \(\nabla_{x_t}\log p(y\mid x_t)\)</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\nabla_{x_t}\log p(x_t\mid y)\)
+            <small>guided score</small>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        The classifier/regressor is trained separately to predict \(y\) (a
+        class label or an embedding) from the noisy input \(x_t\). The two
+        scores are added at every reverse step. Written in terms of the noise
+        prediction, using score \(= -\epsilon/\sqrt{1-\bar\alpha_t}\):
+      </p>
+
+      <div class="formula">
+        \[
+          \tilde\epsilon_\theta(x_t, y)
+          =
+          \hat\epsilon_\theta(x_t)
+          -
+          \sqrt{1-\bar\alpha_t}\;\nabla_{x_t}\log p(y\mid x_t),
+        \]
+      </div>
+
+      <p>
+        and \(\tilde\epsilon_\theta\) is used in place of
+        \(\hat\epsilon_\theta\) during sampling.
+      </p>
+
+      <div class="callout warning">
+        <strong>The drawback:</strong>
+        the classifier must work on <em>noisy</em> inputs \(x_t\) at every
+        noise level, so an off-the-shelf classifier trained on clean images
+        cannot be used. Training a classifier at different noise levels is
+        difficult.
+      </div>
+    </section>
+
+    <section id="cfg">
+      <h2>6. Classifier-Free Guidance</h2>
+
+      <p>
+        Classifier-free guidance removes the need for a separate classifier.
+        Start from the same decomposition:
+      </p>
+
+      <div class="formula">
+        \[
+          \nabla\log p(x_t\mid y) = \nabla\log p(x_t) + \nabla\log p(y\mid x_t).
+        \]
+      </div>
+
+      <p>
+        By Bayes' law, the classifier gradient can itself be written using
+        only conditional and unconditional scores:
+      </p>
+
+      <div class="formula">
+        \[
+          \nabla\log p(y\mid x_t) = \nabla\log p(x_t\mid y) - \nabla\log p(x_t).
+        \]
+      </div>
+
+      <p>
+        Substituting this back, and scaling the classifier part by a weight
+        \(\lambda\) to control how strongly we steer towards \(y\):
+      </p>
+
+      <div class="formula">
+        \[
+          \nabla\log p(x_t\mid y)
+          \approx
+          \nabla\log p(x_t)
+          +
+          \lambda\left(\nabla\log p(x_t\mid y) - \nabla\log p(x_t)\right).
+        \]
+      </div>
+
+      <div class="key-result">
+        <strong>Classifier-free guidance</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \nabla_{x_t}\log p(x_t\mid y)
+            =
+            \lambda\,\nabla_{x_t}\log p(x_t\mid y)
+            +
+            (1-\lambda)\,\nabla_{x_t}\log p(x_t)
+            }
+          \]
+        </div>
+        <p class="small">
+          \(\lambda\) is a hyperparameter (the guidance scale).
+          \(\lambda = 1\) gives the plain conditional model; \(\lambda > 1\)
+          pushes samples harder towards the condition \(y\).
+        </p>
+      </div>
+
+      <h3>6.1 Getting both scores from one U-Net</h3>
+
+      <p>
+        Both terms come from the <strong>same</strong> network, which takes
+        \(y\) as an extra input:
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Conditional pass</h3>
+          <p>\((x_t,\ t,\ y) \to\) U-Net \(\theta\)</p>
+          <p class="small">Regressor over \(\nabla_{x_t}\log p(x_t\mid y)\).</p>
+        </div>
+        <div class="card">
+          <h3>Unconditional pass</h3>
+          <p>\((x_t,\ t,\ y=\varnothing) \to\) U-Net \(\theta\) (same weights)</p>
+          <p class="small">
+            Feeding a <strong>null label / empty text</strong> \(\varnothing\)
+            makes it a regressor over \(\nabla_{x_t}\log p(x_t)\).
+          </p>
+        </div>
+      </div>
+
+      <p>
+        During training, \(y\) is randomly replaced by \(\varnothing\) for a
+        fraction of the examples, so the single network learns both scores.
+        During sampling, we run both passes and add the
+        \(\lambda\)-weighted conditional score and the
+        \((1-\lambda)\)-weighted unconditional score before taking the
+        reverse step. In terms of noise predictions:
+      </p>
+
+      <div class="formula">
+        \[
+          \tilde\epsilon_\theta(x_t, y)
+          =
+          \lambda\,\hat\epsilon_\theta(x_t, t, y)
+          +
+          (1-\lambda)\,\hat\epsilon_\theta(x_t, t, \varnothing).
+        \]
+      </div>
+
+      <div class="callout intuition">
+        <strong>Why it works:</strong>
+        the difference \(\nabla\log p(x_t\mid y) - \nabla\log p(x_t)\) is an
+        <em>implicit classifier</em> gradient: it is the direction that makes
+        \(x_t\) more like \(y\) specifically, rather than more like data in
+        general. No noisy classifier is ever trained.
+      </div>
+    </section>
+
+    <section id="ldm">
+      <h2>7. Latent Diffusion Models</h2>
+
+      <div class="callout">
+        <strong>The basic idea:</strong>
+        build diffusion models on the latent space induced by another
+        encoder–decoder model.
+      </div>
+
+      <p>
+        Given data \(x_0 \in \mathbb{R}^d \sim p(x_0)\), the first step is to
+        learn a latent representation \(z_0 \in \mathbb{R}^k\), with
+        \(k \ll d\), using an encoder–decoder model. For example, construct a
+        VQ-VAE to learn a latent space:
+      </p>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box">
+            \(x_0\)
+            <small>data, \(\mathbb{R}^d\)</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            Enc \(E_\phi\)
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(z_0\)
+            <small>latent, \(\mathbb{R}^k\)</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            Dec \(D_\theta\)
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(\hat{x}_0\)
+            <small>reconstruction</small>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        Let \(E_\phi\) and \(D_\theta\) be the encoder and decoder functions.
+        The trained \(E_{\phi^*}\) and \(D_{\theta^*}\) are learned from the
+        original data \(x_0\), or from some other dataset similar to \(x_0\).
+      </p>
+
+      <h3>7.1 Training and sampling</h3>
+
+      <ol>
+        <li>
+          All the data points in \(\mathbb{R}^d\) are projected onto the latent
+          space as \(z_0 = E_{\phi^*}(x_0)\).
+        </li>
+        <li>
+          A DDPM is constructed on the space of \(z_0\): the forward and
+          reverse processes run on \(z_0, z_1, \ldots, z_T\) instead of on
+          pixels.
+        </li>
+        <li>
+          During inference, to generate a novel point from \(p(x_0)\), first
+          sample a novel latent \(z_{\text{novel}}\) with reverse diffusion,
+          then decode it:
+        </li>
+      </ol>
+
+      <div class="formula">
+        \[
+          \boxed{
+          x_{\text{novel}} = D_{\theta^*}(z_{\text{novel}}) \sim p(x_0)
+          }
+        \]
+      </div>
+
+      <div class="diagram">
+        <div class="pipeline">
+          <div class="box noise">
+            \(z_T\)
+            <small>\(\mathcal{N}(0,I)\)</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            Reverse diffusion
+            <small>in latent space</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(z_{\text{novel}}\)
+          </div>
+          <div class="arrow">→</div>
+          <div class="box learned">
+            \(D_{\theta^*}\)
+            <small>decoder</small>
+          </div>
+          <div class="arrow">→</div>
+          <div class="box">
+            \(x_{\text{novel}}\)
+          </div>
+        </div>
+      </div>
+
+      <div class="callout intuition">
+        <strong>Why bother?</strong>
+        Every reverse step needs a forward pass of the U-Net. Running those
+        \(T\) passes on a small \(k\)-dimensional latent instead of a
+        \(d\)-dimensional image is much cheaper, while the decoder takes care
+        of fine pixel detail. This is the idea behind Stable Diffusion.
+      </div>
+    </section>
+
+    <section id="ddim-why">
+      <h2>8. Denoising Diffusion Implicit Models (DDIM): Motivation</h2>
+
+      <p>
+        DDPMs have two practical problems:
+      </p>
+
+      <ol>
+        <li>
+          <strong>Slow sampling.</strong> Generating one sample takes
+          \(T \approx 1000\) network evaluations.
+        </li>
+        <li>
+          <strong>No deterministic posterior inference.</strong> The forward
+          process is stochastic:
+          \[
+            x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\,\epsilon_t,
+            \qquad \epsilon_t \sim \mathcal{N}(0, I).
+          \]
+          Given an \(x_0\), running the forward process multiple times leads to
+          different \(x_T\) (final latent representations of \(x_0\)). So there
+          does not exist a single, unique \(x_T\) that generates a given
+          \(x_0\) through the reverse diffusion process.
+        </li>
+      </ol>
+
+      <div class="callout">
+        <strong>DDIMs solve both issues</strong>: slow sampling and non-unique
+        invertibility.
+      </div>
+    </section>
+
+    <section id="ddim-forward">
+      <h2>9. A Non-Markovian Family of Forward Processes</h2>
+
+      <p>
+        Consider a family of inference distributions, parameterized by a
+        vector \(\sigma \in \mathbb{R}_{\ge 0}^{T}\):
+      </p>
+
+      <div class="formula">
+        \[
+          q_\sigma(x_{1:T}\mid x_0)
+          \triangleq
+          q_\sigma(x_T\mid x_0)\prod_{t=2}^{T} q_\sigma(x_{t-1}\mid x_t, x_0),
+        \]
+      </div>
+
+      <p>
+        where
+      </p>
+
+      <div class="formula">
+        \[
+          q_\sigma(x_T\mid x_0)
+          \triangleq
+          \mathcal{N}\!\left(\sqrt{\bar\alpha_T}\,x_0,\ (1-\bar\alpha_T)\,I\right),
+        \]
+      </div>
+
+      <p>
+        and, for all \(t > 1\),
+      </p>
+
+      <div class="key-result">
+        <strong>The DDIM posterior</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            q_\sigma(x_{t-1}\mid x_t, x_0)
+            \triangleq
+            \mathcal{N}\!\left(
+              \sqrt{\bar\alpha_{t-1}}\,x_0
+              +
+              \sqrt{1-\bar\alpha_{t-1}-\sigma_t^2}\cdot
+              \frac{x_t - \sqrt{\bar\alpha_t}\,x_0}{\sqrt{1-\bar\alpha_t}},\
+              \sigma_t^2 I
+            \right)
+            }
+          \]
+        </div>
+      </div>
+
+      <div class="callout intuition">
+        <strong>Reading the mean:</strong>
+        \(\frac{x_t - \sqrt{\bar\alpha_t}\,x_0}{\sqrt{1-\bar\alpha_t}}\) is
+        exactly the noise \(\epsilon_t\) that turned \(x_0\) into \(x_t\). So
+        \(x_{t-1}\) is built as “signal at level \(t-1\)” plus “the same noise
+        direction, rescaled”, plus fresh noise of variance \(\sigma_t^2\).
+      </div>
+
+      <h3>9.1 The corresponding forward process</h3>
+
+      <p>
+        The forward process corresponding to this posterior follows from
+        Bayes' rule:
+      </p>
+
+      <div class="formula">
+        \[
+          q_\sigma(x_t\mid x_{t-1}, x_0)
+          =
+          \frac{q_\sigma(x_{t-1}\mid x_t, x_0)\;q_\sigma(x_t\mid x_0)}{q_\sigma(x_{t-1}\mid x_0)}.
+        \]
+      </div>
+
+      <p>
+        This forward process is <strong>not Markovian</strong>: each \(x_t\)
+        depends on \(x_0\) as well as \(x_{t-1}\),
+      </p>
+
+      <div class="formula">
+        \[
+          x_t \not\perp x_0 \mid x_{t-1}.
+        \]
+      </div>
+
+      <div class="key-result">
+        <strong>Key property</strong>
+        <p>In the above process,</p>
+        <div class="formula">
+          \[
+            \boxed{
+            q_\sigma(x_t\mid x_0)
+            =
+            \mathcal{N}\!\left(x_t;\ \sqrt{\bar\alpha_t}\,x_0,\ (1-\bar\alpha_t)\,I\right)
+            }
+          \]
+        </div>
+        <p>which is <strong>the same as in a DDPM</strong>.</p>
+      </div>
+    </section>
+
+    <section id="ddim-elbo">
+      <h2>10. Same Marginals, Same ELBO, Same Training</h2>
+
+      <p>
+        Since \(q_\sigma(x_t\mid x_0)\), the conditional of \(x_t\) given
+        \(x_0\), is the same in both DDPM and DDIM, the ELBOs for both of them
+        are the same, and optimizing the ELBO leads to the same solution.
+      </p>
+
+      <div class="callout">
+        <strong>Why:</strong>
+        the training objective of a DDPM/DDIM depends only on
+        \(q(x_t\mid x_0)\): we sample \(x_t\) from it and regress onto the
+        noise. As long as \(q(x_t\mid x_0)\) is the same as that of DDPMs, any
+        process can be used, and it leads to the same solution of the ELBO.
+        In other words, any definition of \(q(x_{1:T}\mid x_0)\) can be chosen,
+        provided its marginals \(q(x_t\mid x_0)\) match the DDPM.
+      </div>
+
+      <h3>10.1 Defining the decoder (reverse process)</h3>
+
+      <p>
+        The reverse process plugs a prediction of \(x_0\) into the DDIM
+        posterior:
+      </p>
+
+      <div class="formula">
+        \[
+          p_\theta(x_{t-1}\mid x_t)
+          =
+          \begin{cases}
+            \mathcal{N}\!\left(\hat{x}_\theta(x_1),\ \sigma_1^2 I\right) & t = 1, \\[4pt]
+            q_\sigma\!\left(x_{t-1}\mid x_t,\ \hat{x}_\theta(x_t)\right) & \text{otherwise},
+          \end{cases}
+        \]
+      </div>
+
+      <p>
+        where the approximation of \(x_0\) comes from the trained noise
+        predictor:
+      </p>
+
+      <div class="formula">
+        \[
+          \hat{x}_\theta(x_t)
+          =
+          \frac{x_t - \sqrt{1-\bar\alpha_t}\,\hat\epsilon_\theta(x_t)}{\sqrt{\bar\alpha_t}}
+          \quad : \text{approx. for } x_0.
+        \]
+      </div>
+
+      <p>
+        This is Eq. (1) again: recall
+        \(x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\,\epsilon_t\),
+        so \(x_0 = (x_t - \sqrt{1-\bar\alpha_t}\,\epsilon_t)/\sqrt{\bar\alpha_t}\),
+        and we replace the true noise with its prediction.
+      </p>
+
+      <div class="key-result">
+        <strong>The main result</strong>
+        <p>
+          The ELBO of the non-Markovian family above and that of the DDPM are
+          the same (up to a constant).
+        </p>
+        <div class="formula">
+          \[
+            \boxed{
+            \text{Training the regression network in a DDPM is implicitly
+            training all of the above non-Markovian models.}
+            }
+          \]
+        </div>
+      </div>
+
+      <div class="callout intuition">
+        <strong>Consequence:</strong>
+        there is no difference between training a DDPM and a DDIM. Only the
+        inference process is different. Any DDPM checkpoint can be sampled
+        with DDIM, without retraining.
+      </div>
+    </section>
+
+    <section id="ddim-reverse">
+      <h2>11. Inference with DDIMs</h2>
+
+      <p>
+        With the trained network \(\theta^*\), sampling from
+        \(p_{\theta^*}(x_{t-1}\mid x_t)\) means sampling from
+      </p>
+
+      <div class="formula">
+        \[
+          p_{\theta^*}(x_{t-1}\mid x_t)
+          =
+          \begin{cases}
+            \mathcal{N}\!\left(\hat{x}_{\theta^*}(x_1),\ \sigma_1^2 I\right) & t = 1, \\[4pt]
+            q_\sigma\!\left(x_{t-1}\mid x_t,\ \hat{x}_{\theta^*}(x_t)\right) & \text{otherwise}.
+          \end{cases}
+        \]
+      </div>
+
+      <p>
+        From the definition of \(\hat{x}_{\theta^*}\), the noise term inside the
+        DDIM posterior is simply the predicted noise:
+      </p>
+
+      <div class="formula">
+        \[
+          \hat{x}_{\theta^*}(x_t)
+          =
+          \frac{x_t - \sqrt{1-\bar\alpha_t}\,\hat\epsilon_{\theta^*}}{\sqrt{\bar\alpha_t}}
+          \quad\Longrightarrow\quad
+          \frac{x_t - \sqrt{\bar\alpha_t}\,\hat{x}_{\theta^*}}{\sqrt{1-\bar\alpha_t}}
+          =
+          \hat\epsilon_{\theta^*}.
+        \]
+      </div>
+
+      <p>
+        Substituting into the DDIM posterior,
+      </p>
+
+      <div class="formula">
+        \[
+          q_\sigma\!\left(x_{t-1}\mid x_t,\ \hat{x}_{\theta^*}\right)
+          =
+          \mathcal{N}\!\left(
+            \sqrt{\bar\alpha_{t-1}}\,\hat{x}_{\theta^*}
+            +
+            \sqrt{1-\bar\alpha_{t-1}-\sigma_t^2}\cdot
+            \frac{x_t - \sqrt{\bar\alpha_t}\,\hat{x}_{\theta^*}}{\sqrt{1-\bar\alpha_t}},\
+            \sigma_t^2 I
+          \right).
+        \]
+      </div>
+
+      <p>
+        Putting all of the above together, sampling from
+        \(p_{\theta^*}(x_{t-1}\mid x_t)\) is as follows:
+      </p>
+
+      <div class="key-result">
+        <strong>The general DDIM update</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            x_{t-1}
+            =
+            \sqrt{\bar\alpha_{t-1}}
+            \underbrace{\left[\frac{x_t - \sqrt{1-\bar\alpha_t}\,\hat\epsilon_{\theta^*}}{\sqrt{\bar\alpha_t}}\right]}_{\text{predicted } x_0}
+            +
+            \underbrace{\sqrt{1-\bar\alpha_{t-1}-\sigma_t^2}\;\hat\epsilon_{\theta^*}}_{\text{direction pointing to } x_t}
+            +
+            \underbrace{\sigma_t\,z}_{\text{random noise}},
+            \qquad z \sim \mathcal{N}(0, I)
+            }
+          \]
+        </div>
+      </div>
+    </section>
+
+    <section id="ddim-sampling">
+      <h2>12. From DDPM to DDIM: Choosing \(\sigma_t\)</h2>
+
+      <h3>12.1 \(\sigma_t\) that recovers the DDPM</h3>
+
+      <p>
+        When
+      </p>
+
+      <div class="formula">
+        \[
+          \sigma_t
+          =
+          \sqrt{\frac{1-\bar\alpha_{t-1}}{1-\bar\alpha_t}}\;
+          \sqrt{1-\frac{\bar\alpha_t}{\bar\alpha_{t-1}}},
+        \]
+      </div>
+
+      <p>
+        the above random process reduces to the <strong>DDPM</strong>. Since
+        \(\bar\alpha_t/\bar\alpha_{t-1} = \alpha_t\), this is
+        \(\sigma_t^2 = \frac{(1-\alpha_t)(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}\),
+        exactly the posterior variance \(\sigma_q^2\) from Part 1.
+      </p>
+
+      <h3>12.2 \(\sigma_t = 0\): the DDIM</h3>
+
+      <p>
+        When \(\sigma_t = 0\), the sampling process has the following form:
+      </p>
+
+      <div class="key-result">
+        <strong>Deterministic DDIM sampling</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            x_{t-1}
+            =
+            \sqrt{\bar\alpha_{t-1}}
+            \left[\frac{x_t - \sqrt{1-\bar\alpha_t}\,\hat\epsilon_{\theta^*}}{\sqrt{\bar\alpha_t}}\right]
+            +
+            \sqrt{1-\bar\alpha_{t-1}}\;\hat\epsilon_{\theta^*}
+            }
+          \]
+        </div>
+      </div>
+
+      <ul>
+        <li>
+          The above sampling process is <strong>deterministic</strong>. The
+          only randomness is from the starting point \(x_T \sim \mathcal{N}(0, I)\).
+        </li>
+        <li>
+          With \(\sigma_t = 0\), the model is called a <strong>DDIM</strong>.
+        </li>
+        <li>
+          The forward process in DDIM with \(\sigma_t = 0\) is
+          <strong>also deterministic</strong>.
+        </li>
+      </ul>
+
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>DDPM</th>
+            <th>DDIM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>\(\sigma_t\)</td>
+            <td>\(\sigma_q\) (posterior std. dev.)</td>
+            <td>\(0\)</td>
+          </tr>
+          <tr>
+            <td>Forward process</td>
+            <td>Markovian, stochastic</td>
+            <td>Non-Markovian, deterministic</td>
+          </tr>
+          <tr>
+            <td>Sampling</td>
+            <td>Stochastic at every step</td>
+            <td>Deterministic given \(x_T\)</td>
+          </tr>
+          <tr>
+            <td>\(x_0 \to x_T\) mapping</td>
+            <td>Not unique</td>
+            <td>Unique (invertible)</td>
+          </tr>
+          <tr>
+            <td>Training</td>
+            <td colspan="2">Identical: \(\|\epsilon_t - \hat\epsilon_\theta(x_t)\|_2^2\)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout intuition">
+        <strong>DDIM inversion:</strong>
+        because both directions are deterministic, DDIM has a
+        <strong>unique invertibility</strong>. A real image \(x_0\) can be
+        mapped to a single latent \(x_T\), and decoding that \(x_T\) gives the
+        same image back. This is what makes image editing with diffusion
+        models possible: invert, modify, regenerate.
+      </div>
+
+      <div class="callout">
+        <strong>Faster sampling:</strong>
+        since training only uses the marginals \(q(x_t\mid x_0)\), the
+        deterministic update can also be run on a short subsequence of time
+        steps (for example, 50 out of 1000), jumping from \(\bar\alpha_t\)
+        straight to \(\bar\alpha_{t'}\) for some \(t' < t - 1\). This is how
+        DDIM addresses the slow sampling of DDPMs.
+      </div>
+    </section>
+
+    <section id="summary">
+      <h2>13. Summary</h2>
+
+      <div class="takeaways">
+        <ol>
+          <li>
+            <strong>Noise regression:</strong>
+            writing \(\mu_q\) in terms of \(\epsilon_t\) turns the consistency
+            term into \(\|\epsilon_t - \hat\epsilon_\theta(x_t)\|_2^2\).
+          </li>
+          <li>
+            <strong>Score prediction:</strong>
+            Tweedie's formula gives
+            \(x_0 = (x_t + (1-\bar\alpha_t)\nabla\log p(x_t))/\sqrt{\bar\alpha_t}\),
+            so the network can equally regress onto the score.
+          </li>
+          <li>
+            <strong>Score = scaled noise:</strong>
+            \(\nabla_{x_t}\log p(x_t) = -\epsilon_t/\sqrt{1-\bar\alpha_t}\);
+            a noise predictor is implicitly a score predictor.
+          </li>
+          <li>
+            <strong>Classifier guidance:</strong>
+            conditional score = unconditional score +
+            \(\nabla_{x_t}\log p(y\mid x_t)\) from a separately trained noisy
+            classifier.
+          </li>
+          <li>
+            <strong>Classifier-free guidance:</strong>
+            \(\lambda\,\nabla\log p(x_t\mid y) + (1-\lambda)\,\nabla\log p(x_t)\),
+            both from one U-Net, using a null condition \(y=\varnothing\) for
+            the unconditional score.
+          </li>
+          <li>
+            <strong>Latent diffusion:</strong>
+            diffuse in the latent space \(z_0 = E_{\phi^*}(x_0)\) of a
+            pre-trained encoder–decoder; decode with \(D_{\theta^*}\).
+          </li>
+          <li>
+            <strong>DDIM:</strong>
+            a non-Markovian forward family with the same
+            \(q(x_t\mid x_0)\), hence the same ELBO and training; with
+            \(\sigma_t = 0\), sampling is deterministic and invertible.
+          </li>
+        </ol>
+      </div>
+
+      <div class="key-result">
+        <strong>The central equations</strong>
+        <div class="formula">
+          \[
+            \boxed{
+            \nabla_{x_t}\log p(x_t)
+            =
+            -\frac{\epsilon_t}{\sqrt{1-\bar\alpha_t}}
+            }
+            \qquad
+            \boxed{
+            \nabla_{x_t}\log p(x_t\mid y)
+            =
+            \nabla_{x_t}\log p(x_t)
+            +
+            \nabla_{x_t}\log p(y\mid x_t)
+            }
+          \]
+          \[
+            \boxed{
+            x_{t-1}
+            =
+            \sqrt{\bar\alpha_{t-1}}\,\hat{x}_{\theta^*}(x_t)
+            +
+            \sqrt{1-\bar\alpha_{t-1}-\sigma_t^2}\;\hat\epsilon_{\theta^*}
+            +
+            \sigma_t\,z
+            }
+          \]
+        </div>
+      </div>
+
+      <p>
+        A single trained noise predictor is therefore much more than a
+        denoiser: it is a score model that can be steered with guidance, run
+        in a compressed latent space, and sampled deterministically with
+        DDIM.
+      </p>
+
+      <footer>
+        <strong>Course note.</strong>
+        This lesson is based on the supplied handwritten diffusion-model notes
+        of Rittik Panda. It continues
+        <a href="../Diffusion/">Part 1: Denoising Diffusion Probabilistic Models</a>.
+      </footer>
+    </section>
+  </main>
+</div>
+</body>
+</html>
