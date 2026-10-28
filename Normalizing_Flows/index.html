@@ -347,7 +347,17 @@ p_Z(z)\geq 0\ \ \forall z,
   p_Z(z)\,dz = p_X(x)\,dx.
   \]
   </div>
-   
+
+  <div class="callout intuition">
+    <strong>Why must probability mass be conserved?</strong>
+    Because \(f\) is deterministic and invertible, every \(z\) in the sliver
+    \([z, z+dz]\) lands in the corresponding \(x\)-interval, and nothing from
+    outside the sliver lands there. So “\(z\) fell in the sliver” and
+    “\(x\) fell in its image” are the <em>same event</em> and must have the
+    same probability: the transformation moves samples around but never
+    creates or destroys them.
+  </div>
+
   <p>
     Rearranging this gives the general rule for one dimension:
   </p>
@@ -393,7 +403,7 @@ p_Z(z)\geq 0\ \ \forall z,
   <div class="formula">
   \[
   \boxed{
-  p_X(x) = p_Z(z)\left|\frac{df(Z)}{dz}\right|^{-1}
+  p_X(x) = p_Z(z)\left|\frac{df(z)}{dz}\right|^{-1}
   }
   \]
   </div>
