@@ -636,15 +636,17 @@ p_Z(z)\geq 0\ \ \forall z,
       </div>
     
       <p>
-        Differentiate both sides with respect to \(z\). Using the multivariable
-        chain rule:
+        Differentiate both sides with respect to \(z\). Since \(z\) is a
+        vector, we use partial derivatives \(\frac{\partial}{\partial z}\)
+        (not the one-variable \(\frac{d}{dz}\)) and the multivariable chain
+        rule:
       </p>
-    
+
       <div class="formula compact">
         \[
-        \frac{d}{dz}\,f^{-1}(f(z))
+        \frac{\partial}{\partial z}\,f^{-1}(f(z))
         =
-        \frac{d}{dz}\,z
+        \frac{\partial z}{\partial z}
         =
         I.
         \]
@@ -717,9 +719,17 @@ p_Z(z)\geq 0\ \ \forall z,
           =
           p_Z(z)
           \left|\det J_f(z)\right|^{-1},
-          \qquad x=f(z).
+          \qquad z=f^{-1}(x).
           \]
         </div>
+
+        <p>
+          <strong>Note:</strong> this does <em>not</em> remove the need for
+          \(f^{-1}\). To evaluate \(p_X(x)\) at a data point \(x\), we still
+          have to compute \(z=f^{-1}(x)\) first. The shortcut only saves us
+          from computing the <em>determinant of the inverse Jacobian</em>,
+          not from computing the inverse itself.
+        </p>
       </div>
     </div>
      
@@ -735,9 +745,19 @@ p_Z(z)\geq 0\ \ \forall z,
     </div>
      
     <p>
-      provided \(f\) is differentiable and invertible. This single equation is
+      provided \(f\) is a <strong>diffeomorphism</strong>: \(f\) is invertible,
+      and both \(f\) and \(f^{-1}\) are differentiable. This single equation is
       the entire foundation of normalizing flows.
     </p>
+
+    <div class="callout warning">
+      <strong>Why “differentiable and invertible” is not quite enough:</strong>
+      we also need \(f^{-1}\) to be differentiable, which guarantees that
+      \(J_f(z)\) is invertible, so \(J_f(z)^{-1}\) in the shortcut above exists.
+      For example, \(f(z)=z^3\) is differentiable and invertible, but
+      \(f'(0)=0\), and its inverse \(z^{1/3}\) has no derivative at \(0\): the
+      density formula would divide by zero there.
+    </div>
     </section>
 
 <section id="chaining">
