@@ -824,7 +824,7 @@
 
       <p>
         Recall that in a VAE, we lower-bound the log-likelihood by introducing
-        the encoder \(q(z\mid x)\):
+        the learnable encoder \(q_\phi(z\mid x)\):
       </p>
 
       <div class="formula">
@@ -834,17 +834,18 @@
           \log \int p_\theta(x, z)\,dz
           \;\ge\;
           \underbrace{
-          \mathbb{E}_{q(z\mid x)}
+          \mathbb{E}_{q_\phi(z\mid x)}
           \left[
-            \log \frac{p_\theta(x, z)}{q(z\mid x)}
+            \log \frac{p_\theta(x, z)}{q_\phi(z\mid x)}
           \right]
-          }_{J_\theta(q)\ :\ \text{Evidence Lower Bound (ELBO)}}
+          }_{J_\theta(q_\phi)\ :\ \text{Evidence Lower Bound (ELBO)}}
         \]
       </div>
 
       <p>
         A DDPM is the same construction with \(z\) replaced by all the latents
-        \(x_{1:T}\), and the encoder replaced by the fixed forward process:
+        \(x_{1:T}\), and the learnable encoder \(q_\phi\) replaced by the fixed
+        forward process \(q\) (no \(\phi\), since nothing in it is learned):
       </p>
 
       <div class="key-result">
