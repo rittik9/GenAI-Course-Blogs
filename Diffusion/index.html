@@ -954,6 +954,40 @@
         \]
       </div>
 
+      <div class="callout warning">
+        <strong>Two different directions in one ratio.</strong>
+        Look closely at the last term:
+
+        <div class="formula">
+          \[
+            \log
+            \prod_{t=2}^{T}
+            \frac{
+              \overbrace{p_\theta(x_{t-1}\mid x_t)}^{\text{reverse: } x_t \,\to\, x_{t-1}}
+            }{
+              \underbrace{q(x_t\mid x_{t-1})}_{\text{forward: } x_{t-1} \,\to\, x_t}
+            }.
+          \]
+        </div>
+
+        <p>
+          The numerator goes in the <strong>reverse</strong> direction, but the
+          denominator goes in the <strong>forward</strong> direction. Two
+          distributions over different variables pointing in opposite
+          directions cannot be compared directly, e.g. through a KL divergence.
+          We want both of them to describe the <strong>same direction</strong>.
+        </p>
+
+        <p>
+          Which one should we flip? Rewriting \(p_\theta\) in the forward
+          direction is difficult: it is the parameterized distribution whose
+          \(\theta\) we are trying to find. But \(q\) is fixed and fully
+          known, so we can rewrite \(q\) in the reverse direction, i.e. in the
+          same form as \(p_\theta(x_{t-1}\mid x_t)\). That is exactly what the
+          next step does.
+        </p>
+      </div>
+
       <h3>6.2 Rewriting the denominator with Bayes' rule</h3>
 
       <p>
@@ -982,6 +1016,13 @@
         has landed at \(x_t\) at time \(t\), starting from \(x_0\). It describes
         how to take one step <em>backwards</em> when we know where the chain
         started and where it currently is.
+        <p>
+          It is called the <strong>true reverse distribution</strong>: the
+          forward distribution \(q\) written in the reverse direction
+          \(x_t \to x_{t-1}\). It points the same way as the learned
+          \(p_\theta(x_{t-1}\mid x_t)\), so now both the numerator and the
+          denominator describe the reverse direction.
+        </p>
       </div>
 
       <p>
