@@ -1166,17 +1166,52 @@
       </div>
 
       <p>
-        For the GMM, the E-step computes the posterior responsibility of
+        It can be shown analytically that the best \(q\) for the ELBO is the
+        true posterior. Write \(p_{\theta_t}(x,z)=p_{\theta_t}(z\mid x)\,p_{\theta_t}(x)\)
+        inside the ELBO:
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          \mathcal{L}(\theta_t,q)
+          &= \mathbb{E}_{q(z\mid x)}\!\left[\log\frac{p_{\theta_t}(x,z)}{q(z\mid x)}\right]
+          = \mathbb{E}_{q(z\mid x)}\!\left[\log\frac{p_{\theta_t}(z\mid x)\,p_{\theta_t}(x)}{q(z\mid x)}\right] \\[6pt]
+          &= \log p_{\theta_t}(x)
+          - D_{\mathrm{KL}}\!\left(q(z\mid x)\,\|\,p_{\theta_t}(z\mid x)\right).
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        \(\log p_{\theta_t}(x)\) does not depend on \(q\), and the KL term is
+        never negative, becoming \(0\) only when the two distributions are equal. Hence
+      </p>
+
+      <div class="formula">
+        \[
+          q^{*}_{t+1}
+          = \arg\max_q \mathcal{L}(\theta_t,q)
+          = \arg\min_q D_{\mathrm{KL}}\!\left(q(z\mid x)\,\|\,p_{\theta_t}(z\mid x)\right)
+          = p_{\theta_t}(z\mid x).
+        \]
+      </div>
+
+      <p>
+        \(\log p_{\theta_t}(x)\) is constant in \(q\), so maximizing \(\mathcal{L}\)
+        means minimizing the KL; the KL is \(\ge 0\) and is \(0\) only when
+        \(q(z\mid x)=p_{\theta_t}(z\mid x)\).
+      </p>
+
+      <p>
+        For the GMM, the E-step therefore computes the posterior responsibility of
         component \(j\):
       </p>
 
       <div class="formula">
         \[
         \begin{aligned}
-          q_{t+1}
-          &= \arg\max_q \mathcal{L}(\theta_t,q) \\[4pt]
-          \text{Now,}\quad
-          \mathcal{L}(\theta_t,q)
+          q^{*}_{t+1}(z=j)
           &= p_{\theta_t}(z=j\mid x) \\[6pt]
           &= \frac{
             p_{\theta_t}(x\mid z=j)\,
@@ -1212,6 +1247,24 @@
           \mathcal{N}\!\left(x;\mu_i^{t},\Sigma_i^{t}\right)\alpha_i^{t}.
         \]
       </div>
+      <div class="callout">
+        <strong>What are \(\theta\) and \(q\) here?</strong>
+        For a GMM, \(\theta=\{\alpha_j,\mu_j,\Sigma_j\}\) is the complete set of model
+        parameters. \(q\) is not a second set of parameters: it is a distribution over
+        the latent \(z\). For data point \(x_i\) it is just a probability vector,
+        \(q(z_i=j)=\gamma_{ij}\) with \(\sum_j\gamma_{ij}=1\), so \(q\) is the
+        \(N\times M\) table of responsibilities. It is not learned by gradient steps;
+        it is computed directly from \(\theta_t\). That is why EM alternates:
+        \(\theta_t\) determines \(q_{t+1}\), and \(q_{t+1}\) determines \(\theta_{t+1}\).
+
+        <table>
+          <tr><th></th><th>GMM / EM</th><th>VAE</th></tr>
+          <tr><td>Model parameters</td><td>\(\theta=\{\alpha,\mu,\Sigma\}\)</td><td>\(\theta\) = decoder weights</td></tr>
+          <tr><td>\(q\)</td><td>\(\gamma_{ij}\), computed exactly from \(\theta_t\)</td><td>\(q_\phi(z\mid x)\), a network with parameters \(\phi\)</td></tr>
+          <tr><td>Why</td><td>Posterior is exact (Bayes' rule over \(M\) values)</td><td>Posterior is intractable, so it is approximated</td></tr>
+        </table>
+      </div>
+
       <p>
         The M-step then updates the parameters using these responsibilities.
       </p>
