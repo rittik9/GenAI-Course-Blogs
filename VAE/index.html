@@ -912,20 +912,43 @@
 
       <p>
         The gap between the log likelihood and the ELBO is itself a KL
-        divergence. In particular,
+        divergence. Writing \(p_\theta(x,z)=p_\theta(z\mid x)\,p_\theta(x)\) inside the ELBO,
+      </p>
+
+      <div class="formula">
+        \[
+        \begin{aligned}
+          \mathcal{L}(\theta,\phi)
+          &=
+          \mathbb{E}_{q_\phi(z\mid x)}
+          \left[
+          \log\frac{p_\theta(z\mid x)\,p_\theta(x)}{q_\phi(z\mid x)}
+          \right]
+          =
+          \log p_\theta(x)
+          -
+          D_{\mathrm{KL}}
+          \left(
+          q_\phi(z\mid x)\,\|\,p_\theta(z\mid x)
+          \right),
+        \end{aligned}
+        \]
+      </div>
+
+      <p>
+        so
       </p>
 
       <div class="formula">
         \[
           \boxed{
-              \mathbb{E}_{q_\phi(z\mid x)}
-              [\log p_\theta(x\mid z)]
+          \log p_\theta(x)
           =
           \mathcal{L}(\theta,\phi)
           +
           D_{\mathrm{KL}}
           \left(
-         q_\phi(z\mid x)\,\|\,p_\theta(z)
+          q_\phi(z\mid x)\,\|\,p_\theta(z\mid x)
           \right)
           }
         \]
@@ -937,23 +960,23 @@
         D_{\mathrm{KL}}
         \left(
           q_\phi(z\mid x)
-          \,\|\, 
-          p_\theta(z)
+          \,\|\,
+          p_\theta(z\mid x)
         \right)
         \geq 0,}
       \]
       the ELBO is guaranteed to be a lower bound on the log-likelihood. The bound
       becomes <strong>tight</strong> when
       \[  \boxed{
-        q_\phi(z\mid x)=p_\theta(z),}
+        q_\phi(z\mid x)=p_\theta(z\mid x),}
       \]
-      because in that case
+      i.e. when \(q_\phi\) equals the true posterior, because in that case
       \[  \boxed{
         D_{\mathrm{KL}}
         \left(
           q_\phi(z\mid x)
-          \,\|\, 
-          p_\theta(z)
+          \,\|\,
+          p_\theta(z\mid x)
         \right)
         =0.}
       \]
