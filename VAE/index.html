@@ -1213,7 +1213,8 @@
 
       <p>
         \(\log p_{\theta_t}(x)\) does not depend on \(q\), and the KL term is
-        never negative, becoming \(0\) only when the two distributions are equal. Hence
+        never negative, becoming \(0\) only when the two distributions are equal,
+        i.e. \(q(z\mid x)=p_{\theta_t}(z\mid x)\). Hence
       </p>
 
       <div class="formula">
@@ -1224,12 +1225,6 @@
           = p_{\theta_t}(z\mid x).
         \]
       </div>
-
-      <p>
-        \(\log p_{\theta_t}(x)\) is constant in \(q\), so maximizing \(\mathcal{L}\)
-        means minimizing the KL; the KL is \(\ge 0\) and is \(0\) only when
-        \(q(z\mid x)=p_{\theta_t}(z\mid x)\).
-      </p>
 
       <p>
         For the GMM, the E-step therefore computes the posterior responsibility of
@@ -1605,9 +1600,13 @@
       <div class="formula">
         \[
           \log p_\theta(x\mid z)
-          \propto
+          =
+          C
           -
-          \|x-\hat{x}_\theta(z)\|_2^2.
+          \frac{1}{2}
+          \|x-\hat{x}_\theta(z)\|_2^2,
+          \qquad
+          C=-\frac{d}{2}\log(2\pi).
         \]
       </div>
 
