@@ -1647,6 +1647,11 @@
       </div>
 
       <p>
+        This prior has no learnable parameters; the subscript \(\theta\) is kept only
+        for consistency with the general notation (it is often written simply as \(p(z)\)).
+      </p>
+
+      <p>
         If the encoder produces a diagonal Gaussian posterior,
       </p>
 
@@ -1769,23 +1774,25 @@
       <p>
         For a unit-covariance Gaussian decoder,
         \(p_\theta(x\mid z)=\mathcal{N}(\hat{x}_\theta(z),I)\), the reconstruction
-        log-likelihood is proportional to the negative squared reconstruction error:
+        log-likelihood is the negative squared reconstruction error, up to an
+        additive constant \(C\):
       </p>
-      
+
       <div class="formula">
         \[
           \log p_\theta(x_i\mid z_i)
-          \propto
+          =
+          C
           -\frac{1}{2}
           \left\|
             x_i-\hat{x}_\theta(z_i)
           \right\|_2^2.
         \]
       </div>
-      
+
       <p>
-        Therefore, maximizing the ELBO is equivalent, up to constants and scaling,
-        to minimizing the following loss:
+        Therefore, maximizing the ELBO is equivalent, up to an additive constant,
+        to minimizing the negative ELBO:
       </p>
       
       <div class="formula">
@@ -1796,6 +1803,7 @@
           \frac{1}{M}
           \sum_{i=1}^{M}
           \left[
+            \frac{1}{2}
             \left\|
               x_i-\hat{x}_\theta(z_i)
             \right\|_2^2
@@ -1818,6 +1826,11 @@
           accurately, while the KL divergence regularizes the learned latent
           distribution \(q_\phi(z\mid x)\) to remain close to the prior
           \(\mathcal{N}(0,I)\).
+        </p>
+        <p>
+          Keep the factor \(\tfrac12\): dropping it (or multiplying the whole loss by 2)
+          gives \(\|x-\hat{x}\|_2^2+2\,D_{\mathrm{KL}}\), which changes the relative
+          weight on the KL term and is no longer exactly the negative ELBO.
         </p>
       </div>
 
