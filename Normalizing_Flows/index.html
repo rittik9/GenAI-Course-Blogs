@@ -475,6 +475,34 @@ p_Z(z)\geq 0\ \ \forall z,
     </div>
     </div>
     </div>
+
+  <h3 id="learning-1d">4.1 Learning the Parameters</h3>
+
+  <p>
+    To learn the distribution, we find parameters \(\phi\) that maximize the
+    likelihood of the training data \(\{x_i\}_{i=1}^{I}\) or equivalently
+    minimize the negative log-likelihood:
+  </p>
+
+  <div class="formula">
+  \[
+  \begin{aligned}
+  \hat{\phi}
+  &=
+  \arg\max_{\phi}
+  \left[\prod_{i=1}^{I} p_X(x_i\mid\phi)\right] \\[6pt]
+  &=
+  \arg\min_{\phi}
+  \left[\sum_{i=1}^{I} -\log p_X(x_i\mid\phi)\right] \\[6pt]
+  &=
+  \arg\min_{\phi}
+  \left[\sum_{i=1}^{I}
+  \log\left|\frac{\partial f(z_i,\phi)}{\partial z_i}\right|
+  -
+  \log p_Z(z_i)\right].
+  \end{aligned}
+  \]
+  </div>
   </section>
 
   <section id="higher-dim">
