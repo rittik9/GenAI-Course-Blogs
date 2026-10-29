@@ -206,12 +206,13 @@ footer{
     deterministic functions.
   </p>
   <p>
-    Concretely: start with something easy to sample from and easy to score
-    - a standard Gaussian \(z\sim\mathcal{N}(0,I)\). Pass it through an
-    deterministic invertible function \(f\) to get \(x=f(z)\). If you can track exactly
-    how much \(f\) stretches or squeezes space at every point, you can
-    convert the simple density of \(z\) into the exact density of \(x\) - no
-    approximation required.
+    <strong>Sampling:</strong> draw \(z\sim\mathcal{N}(0,I)\) and pass it
+    through \(f\) to get a new sample \(x=f(z)\).
+  </p>
+  <p>
+    <strong>Exact likelihood:</strong> map a data point back with
+    \(z=f^{-1}(x)\) and score it under the simple Gaussian, which is why
+    \(f\) must be invertible: every \(x\) must trace back to exactly one \(z\).
   </p>
   </div>
 
