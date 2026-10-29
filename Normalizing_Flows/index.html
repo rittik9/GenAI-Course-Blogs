@@ -907,6 +907,16 @@ p(z)=\frac{1}{(2\pi)^{D/2}}\exp\!\left(-\tfrac12 z^\top z\right)
   f_N^{-1}\).
 </p>
 
+<div class="callout intuition">
+  <strong>Why does this work?</strong>
+  Each layer can be undone uniquely, so starting from \(x=z_N\) we can step
+  back one layer at a time to a single \(z_0\): the whole chain is invertible.
+  The inverse undoes the layers in <em>reverse order</em> (like taking off
+  shoes before socks): \(f_N\) was applied last, so \(f_N^{-1}\) is applied
+  first. Composition reads right to left, so in \(F^{-1}\) the rightmost
+  \(f_N^{-1}\) acts first.
+</div>
+
 <p>
   Applying the log-likelihood formula once per step and telescoping the
   result all the way back to \(z_0\) gives:
