@@ -611,9 +611,8 @@
       </div>
 
       <p>
-        But, as discussed above, calculating \(p_\theta(x)\) is intractable. 
-        As a workaround, we instead minimize the KL divergence between the 
-        true data distribution and the model distribution, which gives:
+        To see why this is the right objective, consider minimizing the KL
+        divergence between the true data distribution and the model distribution:
       </p>
 
       <div class="formula">
@@ -689,6 +688,12 @@
     }
     \]
   </div>
+  <p>
+    This establishes the MLE objective, but it does not make it tractable: we still
+    need \(p_\theta(x)\), which, as discussed above, is intractable for
+    latent-variable models. The ELBO introduced in Section 4 provides a tractable
+    lower bound that we can optimize instead.
+  </p>
   <p>
     However, in a latent-variable model, we need to estimate not only the model
     parameters \(\theta\), but also the distribution of the latent variables
@@ -1299,6 +1304,15 @@
         we can use it directly. When it is not, we need
         an approximation. That is the problem the VAE addresses with a
         learned variational posterior.
+        <p>
+          In EM, the E-step optimizes \(q\) with \(\theta\) fixed, and the M-step updates
+          \(\theta\) using that posterior. For a GMM the responsibilities are exact. In a
+          VAE, the encoder \(q_\phi(z\mid x)\) is restricted to a parameterized family
+          and generally cannot represent the exact posterior for every \(x\). So a VAE
+          is not simply standard EM with a neural-network encoder: it optimizes the ELBO
+          jointly over \(\theta\) and \(\phi\) using gradient-based optimization and the
+          reparameterization trick.
+        </p>
       </div>
 
 
