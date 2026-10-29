@@ -1470,10 +1470,14 @@
 
       <p>
         We want to sample \(z\) while still allowing gradients to propagate
-        through \(\mu_\phi(x)\) and \(\sigma_\phi(x)\). However, directly sampling
-        from \(q_\phi(z\mid x)\) introduces stochasticity into the computation,
-        which prevents gradients from being propagated through the sampling
-        operation.
+        through \(\mu_\phi(x)\) and \(\sigma_\phi(x)\). However, sampling \(z\)
+        directly from \(q_\phi(z\mid x)\) is not a differentiable function of
+        \(\phi\), so ordinary backpropagation cannot pass gradients through the
+        sampling step. (Other gradient estimators exist, such as the
+        score-function estimator, but they are usually much noisier.) The
+        reparameterization trick writes the sample as a differentiable function
+        of the encoder's outputs and independent noise, so gradients can flow
+        through \(z\).
       </p>
 
       <h3>Reparameterizing the Gaussian sample</h3>
